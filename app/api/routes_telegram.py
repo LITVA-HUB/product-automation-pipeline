@@ -1,10 +1,14 @@
 from __future__ import annotations
 
-import os
+from typing import Annotated
 
-from fastapi import APIRouter, Header, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
+from sqlalchemy.orm import Session
 
-from app.api.store import INTAKE_EVENTS
+from app.adapters.repositories.intake_repository import IntakeRepository, row_to_event
+from app.api.dependencies import get_db_session, get_settings
+from app.config import Settings
+from app.services.telegram.files import TelegramFileDownloader
 from app.services.telegram.intake import TelegramIntakeService
 
 router = APIRouter(prefix="/telegram", tags=["telegram"])
@@ -13,13 +17,27 @@ router = APIRouter(prefix="/telegram", tags=["telegram"])
 @router.post("/webhook", status_code=status.HTTP_202_ACCEPTED)
 async def telegram_webhook(
     update: dict,
+    session: Annotated[Session, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
     x_telegram_bot_api_secret_token: str | None = Header(default=None),
 ) -> dict:
-    expected_secret = os.getenv("TELEGRAM_WEBHOOK_SECRET")
-    if expected_secret and x_telegram_bot_api_secret_token != expected_secret:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Telegram webhook secret")
+    if settings.telegram_webhook_secret and (
+        x_telegram_bot_api_secret_token != settings.telegram_webhook_secret
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Telegram webhook secret"
+        )
 
     event = TelegramIntakeService().from_update(update)
-    payload = event.model_dump(mode="json")
-    INTAKE_EVENTS.append(payload)
-    return payload
+    if settings.telegram_bot_token and event.item.payload.get("telegram_file_id"):
+        downloader = TelegramFileDownloader(
+            settings.telegram_bot_token,
+            storage_root=settings.local_storage_path,
+        )
+        try:
+            event = await downloader.download_for_event(event)
+        finally:
+            await downloader.close()
+
+    row = IntakeRepository(session).save(event)
+    return row_to_event(row).model_dump(mode="json")

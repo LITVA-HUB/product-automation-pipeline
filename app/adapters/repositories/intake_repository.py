@@ -23,6 +23,7 @@ class IntakeRepository:
             status=event.status,
         )
         self.session.add(row)
+        self.session.flush()
         return row
 
     def list_pending(self, limit: int = 100) -> list[IntakeEventRow]:

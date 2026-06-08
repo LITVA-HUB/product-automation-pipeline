@@ -12,12 +12,13 @@ The repository contains a tested application pipeline:
 - domain model for product candidates;
 - deterministic workflow state machine and audit-ready repositories;
 - arbitrary intake classification for text, supplier URLs, tables, and invoice images;
-- Telegram webhook intake and Mini App inbox API;
+- Telegram webhook intake, Telegram file download, and Mini App operator inbox;
 - CSV/manual ingestion;
 - LLM extraction contracts and OpenRouter adapter locked to `google/gemini-3.1-flash-lite`;
 - deterministic naming, pricing, duplicate detection, image grouping, validation, and publication services;
 - МойСклад REST adapter methods behind ports;
 - FastAPI routes for products and human review decisions;
+- database-backed product, review, and intake APIs;
 - Celery task wrappers for workflow progression;
 - Docker Compose, Alembic migrations, and GitHub Actions test workflow;
 - reproducible dry-run CLI with a sample supplier export.
@@ -48,6 +49,20 @@ pytest -q
 
 Copy `.env.example` to `.env` and fill real secrets only in local or deployment
 environments. Never commit tokens.
+
+## Production Start
+
+```bash
+cp .env.example .env
+docker compose up --build
+```
+
+The compose stack waits for Postgres and Redis, runs `alembic upgrade head`, and
+then starts the API and worker. The operator Mini App is served at
+`/miniapp`; Telegram webhooks must point to `/telegram/webhook`.
+
+If your Docker installation uses the legacy `docker-compose` command, run
+`docker-compose -p product_pipeline up --build` so the project name is ASCII.
 
 ## Dry Run
 
@@ -94,7 +109,7 @@ tests/
 pytest -q
 ```
 
-Current baseline: `63 passed`.
+Current baseline: `69 passed`.
 
 ## Staging Gate
 

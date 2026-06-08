@@ -10,8 +10,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     app_env: str = "dev"
-    database_url: str
-    redis_url: str
+    database_url: str = "sqlite+pysqlite:///:memory:"
+    redis_url: str = "redis://localhost:6379/0"
 
     openrouter_api_key: str = ""
     openrouter_model: str = OPENROUTER_GEMINI_FLASH_LITE_MODEL
@@ -19,9 +19,12 @@ class Settings(BaseSettings):
     openrouter_app_title: str = "Product Automation Pipeline"
 
     moysklad_token: str = ""
-    bitrix_webhook_url: str = ""
+    telegram_bot_token: str = ""
+    telegram_webhook_secret: str = ""
+    telegram_webapp_max_age_seconds: int = 24 * 60 * 60
 
     storage_backend: str = "local"
+    local_storage_path: str = "local_storage"
     auto_publish_enabled: bool = False
     llm_confidence_threshold: float = Field(default=0.75, ge=0, le=1)
 

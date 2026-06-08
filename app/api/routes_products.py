@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
+from sqlalchemy.orm import Session
 
-from app.api.store import PRODUCTS
+from app.adapters.repositories.product_repository import ProductRepository
+from app.api.dependencies import get_db_session
 from app.domain.product_candidate import ProductCandidate
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -21,7 +24,10 @@ class ManualProductRequest(BaseModel):
 
 
 @router.post("/manual", response_model=ProductCandidate, status_code=status.HTTP_201_CREATED)
-async def create_manual_product(request: ManualProductRequest) -> ProductCandidate:
+async def create_manual_product(
+    request: ManualProductRequest,
+    session: Annotated[Session, Depends(get_db_session)],
+) -> ProductCandidate:
     candidate = ProductCandidate(
         supplier=request.supplier,
         source_type="manual",
@@ -31,13 +37,16 @@ async def create_manual_product(request: ManualProductRequest) -> ProductCandida
         raw_price=request.raw_price,
         raw_description=request.raw_description,
     )
-    PRODUCTS[candidate.id] = candidate
+    ProductRepository(session).save(candidate)
     return candidate
 
 
 @router.get("/{product_id}", response_model=ProductCandidate)
-async def get_product(product_id: UUID) -> ProductCandidate:
-    product = PRODUCTS.get(product_id)
+async def get_product(
+    product_id: UUID,
+    session: Annotated[Session, Depends(get_db_session)],
+) -> ProductCandidate:
+    product = ProductRepository(session).get(product_id)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")
     return product

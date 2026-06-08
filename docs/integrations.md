@@ -49,7 +49,8 @@ production write-flow.
 - `scripts/dump_bitrix_properties.py`: optional diagnostic export of Bitrix
   iblock property codes.
 
-These scripts should be implemented before real writes to staging.
+Run these scripts before real writes to staging and keep generated outputs under
+`local_storage/`, which is ignored by git.
 
 ## Sources
 

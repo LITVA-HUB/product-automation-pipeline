@@ -29,6 +29,7 @@ class HumanReviewRepository:
             after=after,
         )
         self.session.add(row)
+        self.session.flush()
         return row
 
     def list_for_product(self, product_id: UUID) -> list[HumanReviewRow]:

@@ -1,15 +1,19 @@
-from decimal import Decimal
-
 import pytest
 
 from app.adapters.moysklad.mappers import candidate_to_ms_product
 from app.domain.product_candidate import ProductCandidate
 from app.domain.publication import PublicationMode
+from app.services.pipeline.product_pipeline import ProductPipeline
 from app.services.publication.service import PublicationService
 from app.workflow.states import WorkflowStatus
 from tests.unit.helpers import make_candidate
-from tests.unit.test_product_pipeline import FakeImageClassifier, FakeMoySkladClient, extraction_result, ms_maps, raw_candidate
-from app.services.pipeline.product_pipeline import ProductPipeline
+from tests.unit.test_product_pipeline import (
+    FakeImageClassifier,
+    FakeMoySkladClient,
+    extraction_result,
+    ms_maps,
+    raw_candidate,
+)
 
 
 def test_product_candidate_defaults_to_ms_only_publication_mode():
@@ -24,7 +28,9 @@ def test_ms_payload_sets_site_export_flag_false_by_default():
 
     payload = candidate_to_ms_product(candidate, ms_maps())
 
-    assert {"meta": {"href": "https://api/attr/site-export"}, "value": False} in payload["attributes"]
+    assert {"meta": {"href": "https://api/attr/site-export"}, "value": False} in payload[
+        "attributes"
+    ]
 
 
 @pytest.mark.asyncio

@@ -15,8 +15,12 @@ def candidate(**overrides):
         "article": FieldWithConfidence(value="ART-001", confidence=1, source="test"),
         "supplier_code": FieldWithConfidence(value="SUP-001", confidence=1, source="test"),
         "unit": FieldWithConfidence(value="м²", confidence=1, source="test"),
-        "units_per_package": FieldWithConfidence(value=Decimal("1.44"), confidence=1, source="test"),
-        "site_manufacturer": FieldWithConfidence(value="Atlas Concorde", confidence=1, source="test"),
+        "units_per_package": FieldWithConfidence(
+            value=Decimal("1.44"), confidence=1, source="test"
+        ),
+        "site_manufacturer": FieldWithConfidence(
+            value="Atlas Concorde", confidence=1, source="test"
+        ),
         "retail_price": Decimal("1000.00"),
     }
     data.update(overrides)
@@ -42,5 +46,7 @@ def test_business_rules_reject_missing_retail_price():
 def test_business_rules_reject_missing_units_per_package():
     with pytest.raises(ValueError, match="units_per_package"):
         apply_business_rules(
-            candidate(units_per_package=FieldWithConfidence(value=None, confidence=0, source="test"))
+            candidate(
+                units_per_package=FieldWithConfidence(value=None, confidence=0, source="test")
+            )
         )

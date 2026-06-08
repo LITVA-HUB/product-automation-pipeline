@@ -30,7 +30,9 @@ def validate_before_ms(candidate: ProductCandidate) -> ValidationResult:
     if candidate.purchase_price is not None and candidate.retail_price is not None:
         expected = Decimal(str(candidate.retail_price)) * Decimal("0.8")
         if Decimal(str(candidate.purchase_price)) != expected.quantize(Decimal("0.01")):
-            errors.append(_error("before_ms", "purchase_price", "purchase price must be retail * 0.8"))
+            errors.append(
+                _error("before_ms", "purchase_price", "purchase price must be retail * 0.8")
+            )
 
     return ValidationResult(scope="before_ms", passed=not errors, errors=errors)
 

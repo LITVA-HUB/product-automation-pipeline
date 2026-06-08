@@ -15,7 +15,9 @@ def make_candidate(**overrides) -> ProductCandidate:
         "article": FieldWithConfidence(value="ART-001", confidence=1, source="test"),
         "supplier_code": FieldWithConfidence(value="SUP-001", confidence=1, source="test"),
         "unit": FieldWithConfidence(value="м²", confidence=1, source="test"),
-        "units_per_package": FieldWithConfidence(value=Decimal("1.44"), confidence=1, source="test"),
+        "units_per_package": FieldWithConfidence(
+            value=Decimal("1.44"), confidence=1, source="test"
+        ),
         "width_mm": FieldWithConfidence(value=600, confidence=1, source="test"),
         "height_mm": FieldWithConfidence(value=1200, confidence=1, source="test"),
         "thickness_mm": FieldWithConfidence(value=9, confidence=1, source="test"),

@@ -47,7 +47,9 @@ def main() -> int:
         return 1
 
     result_root = response.get("result", {})
-    properties = result_root.get("productProperties", result_root if isinstance(result_root, list) else [])
+    properties = result_root.get(
+        "productProperties", result_root if isinstance(result_root, list) else []
+    )
     result = {
         item.get("code") or item.get("id"): {
             "id": item.get("id"),

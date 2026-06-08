@@ -14,7 +14,9 @@ from app.workflow.states import WorkflowStatus
 
 
 class ProductPipeline:
-    def __init__(self, image_classifier: ImageClassifier, confidence_threshold: float = 0.75) -> None:
+    def __init__(
+        self, image_classifier: ImageClassifier, confidence_threshold: float = 0.75
+    ) -> None:
         self.image_classifier = image_classifier
         self.confidence_threshold = confidence_threshold
 
@@ -90,7 +92,9 @@ class ProductPipeline:
             detail=candidate.interior_images,
         )
         await site_client.set_catalog_price(candidate.site_product_id, candidate.site_price)
-        await site_client.set_unit_coefficient(candidate.site_product_id, candidate.unit_coefficient)
+        await site_client.set_unit_coefficient(
+            candidate.site_product_id, candidate.unit_coefficient
+        )
         await site_client.disable_quantity_accounting(candidate.site_product_id)
         await site_client.set_card_type(candidate.site_product_id, "Ламинат")
         await site_client.set_supplier_name(candidate.site_product_id, candidate.supplier)
@@ -114,7 +118,9 @@ class ProductPipeline:
         candidate.status = WorkflowStatus.SITE_VERIFIED
         return candidate
 
-    async def create_in_ms(self, candidate: ProductCandidate, ms_client, ms_maps: dict) -> ProductCandidate:
+    async def create_in_ms(
+        self, candidate: ProductCandidate, ms_client, ms_maps: dict
+    ) -> ProductCandidate:
         if candidate.status != WorkflowStatus.VALIDATED_BEFORE_MS:
             raise ValueError("candidate must be validated before МойСклад write")
 

@@ -157,7 +157,9 @@ def ms_maps() -> dict:
         "uom": {"м²": {"meta": {"href": "https://api/uom/1", "type": "uom"}}},
         "folder": {"Atlas": {"meta": {"href": "https://api/folder/1", "type": "productfolder"}}},
         "supplier": {
-            "Test Supplier": {"meta": {"href": "https://api/counterparty/1", "type": "counterparty"}}
+            "Test Supplier": {
+                "meta": {"href": "https://api/counterparty/1", "type": "counterparty"}
+            }
         },
         "price_types": {
             "retail": {"meta": {"href": "https://api/pricetype/retail"}},

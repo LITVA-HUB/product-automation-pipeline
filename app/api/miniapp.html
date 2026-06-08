@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Product Intake</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: var(--tg-theme-bg-color, #f7f8fa);
+        --text: var(--tg-theme-text-color, #17212b);
+        --muted: var(--tg-theme-hint-color, #6b7280);
+        --line: rgba(93, 108, 123, 0.22);
+        --button: var(--tg-theme-button-color, #2563eb);
+        --button-text: var(--tg-theme-button-text-color, #ffffff);
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0 16px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      button {
+        min-height: 40px;
+        border: 0;
+        border-radius: 8px;
+        padding: 0 14px;
+        background: var(--button);
+        color: var(--button-text);
+        font: inherit;
+        font-weight: 650;
+      }
+
+      .status {
+        margin: 14px 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .event {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.42);
+      }
+
+      .event-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 8px;
+      }
+
+      .kind {
+        font-weight: 700;
+      }
+
+      .source {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      pre {
+        margin: 0;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: var(--text);
+        font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Очередь товаров</h1>
+        <button id="refresh" type="button" aria-label="Обновить очередь">↻</button>
+      </header>
+      <div id="status" class="status">Загрузка...</div>
+      <section id="list" class="list" aria-live="polite"></section>
+    </main>
+    <script>
+      const tg = window.Telegram?.WebApp;
+      tg?.ready();
+      tg?.expand();
+
+      const statusEl = document.getElementById("status");
+      const listEl = document.getElementById("list");
+      const refreshButton = document.getElementById("refresh");
+
+      async function loadQueue() {
+        statusEl.textContent = "Загрузка...";
+        listEl.replaceChildren();
+        const response = await fetch("/miniapp/api/intake/events", {
+          headers: tg?.initData ? { "X-Telegram-Init-Data": tg.initData } : {},
+        });
+        if (!response.ok) {
+          statusEl.textContent = "Нет доступа или backend не готов";
+          return;
+        }
+        const events = await response.json();
+        statusEl.textContent = events.length ? `В очереди: ${events.length}` : "Очередь пустая";
+        for (const event of events) {
+          const item = document.createElement("article");
+          item.className = "event";
+          item.innerHTML = `
+            <div class="event-top">
+              <span class="kind">${event.item.kind}</span>
+              <span class="source">${event.source}</span>
+            </div>
+            <pre>${escapeHtml(JSON.stringify(event.item.payload, null, 2))}</pre>
+          `;
+          listEl.append(item);
+        }
+      }
+
+      function escapeHtml(value) {
+        return value.replace(/[&<>"']/g, (char) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#039;",
+        })[char]);
+      }
+
+      refreshButton.addEventListener("click", loadQueue);
+      loadQueue().catch(() => {
+        statusEl.textContent = "Ошибка загрузки";
+      });
+    </script>
+  </body>
+</html>

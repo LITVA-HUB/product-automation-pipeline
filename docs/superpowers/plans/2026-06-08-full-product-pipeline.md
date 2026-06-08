@@ -236,3 +236,25 @@
 - [x] Persist intake events with status `pending`.
 - [x] Expose `/telegram/webhook` and `/intake/events` for bot/Mini App integration.
 - [x] Keep webhook handling side-effect-safe: no МойСклад writes and no publication.
+
+## Task 17: Production Hardening Pass
+
+**Files:**
+- Create: `app/api/dependencies.py`
+- Create: `app/api/routes_miniapp.py`
+- Create: `app/api/miniapp.html`
+- Create: `app/services/telegram/files.py`
+- Create: `app/services/telegram/webapp_auth.py`
+- Modify: `app/api/routes_products.py`
+- Modify: `app/api/routes_review.py`
+- Modify: `app/api/routes_telegram.py`
+- Modify: `Dockerfile`
+- Modify: `docker-compose.yml`
+- Create: `tests/unit/test_miniapp_api.py`
+- Create: `tests/unit/test_telegram_webapp_auth.py`
+
+- [x] Replace API in-memory product, review, and intake stores with SQLAlchemy repositories.
+- [x] Download Telegram files through `getFile` when `TELEGRAM_BOT_TOKEN` is configured.
+- [x] Serve a Telegram Mini App inbox and validate Mini App `initData` in production.
+- [x] Run Alembic migrations automatically before API/worker startup in Docker Compose.
+- [x] Make `ruff check`, `pytest`, and `compileall` pass on the repository.

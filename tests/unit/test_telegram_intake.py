@@ -1,8 +1,11 @@
+import httpx
+import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 from app.adapters.repositories.intake_repository import IntakeRepository
 from app.adapters.repositories.models import Base
+from app.services.telegram.files import TelegramFileDownloader
 from app.services.telegram.intake import TelegramIntakeService
 
 
@@ -85,3 +88,38 @@ def test_intake_repository_persists_telegram_event():
     assert len(rows) == 1
     assert rows[0].kind == "text"
     assert rows[0].payload["text"] == "ART-001 плитка"
+
+
+@pytest.mark.asyncio
+async def test_telegram_file_downloader_stores_file(tmp_path):
+    event = TelegramIntakeService().from_update(
+        {
+            "message": {
+                "from": {"id": 100},
+                "chat": {"id": 200},
+                "document": {
+                    "file_id": "file-1",
+                    "file_name": "invoice.jpg",
+                    "mime_type": "image/jpeg",
+                },
+            }
+        }
+    )
+
+    async def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/getFile"):
+            return httpx.Response(
+                200, json={"ok": True, "result": {"file_path": "documents/file-1.jpg"}}
+            )
+        return httpx.Response(200, content=b"image-bytes")
+
+    client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    downloader = TelegramFileDownloader("test-token", storage_root=str(tmp_path), client=client)
+
+    downloaded = await downloader.download_for_event(event)
+
+    storage_path = downloaded.item.payload["storage_path"]
+    assert storage_path.endswith("source.jpg")
+    assert downloaded.item.payload["telegram_file_path"] == "documents/file-1.jpg"
+    assert (tmp_path / "telegram" / str(event.id) / "source.jpg").read_bytes() == b"image-bytes"
+    await client.aclose()

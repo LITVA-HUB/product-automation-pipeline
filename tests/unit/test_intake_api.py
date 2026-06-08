@@ -1,11 +1,12 @@
 from fastapi.testclient import TestClient
 
-from app.api.store import INTAKE_EVENTS
+from app.adapters.repositories.models import IntakeEventRow
+from app.api.dependencies import get_session_factory, get_settings
 from app.main import app
 
 
 def test_telegram_webhook_stores_intake_event_for_review_queue():
-    INTAKE_EVENTS.clear()
+    _clear_intake_events()
     client = TestClient(app)
 
     response = client.post(
@@ -23,8 +24,9 @@ def test_telegram_webhook_stores_intake_event_for_review_queue():
 
 
 def test_telegram_webhook_rejects_invalid_secret(monkeypatch):
-    INTAKE_EVENTS.clear()
+    _clear_intake_events()
     monkeypatch.setenv("TELEGRAM_WEBHOOK_SECRET", "expected-secret")
+    get_settings.cache_clear()
     client = TestClient(app)
 
     response = client.post(
@@ -34,4 +36,15 @@ def test_telegram_webhook_rejects_invalid_secret(monkeypatch):
     )
 
     assert response.status_code == 401
-    assert INTAKE_EVENTS == []
+    queue = client.get("/intake/events")
+    assert queue.status_code == 200
+    assert queue.json() == []
+    monkeypatch.delenv("TELEGRAM_WEBHOOK_SECRET")
+    get_settings.cache_clear()
+
+
+def _clear_intake_events() -> None:
+    factory = get_session_factory()
+    with factory() as session:
+        session.query(IntakeEventRow).delete()
+        session.commit()

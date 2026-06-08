@@ -72,7 +72,9 @@ class MoySkladRestClient:
         return _first_row(await self.get("entity/counterparty", {"filter": f"name={name}"}))
 
     async def set_published_flag(self, ms_id: str, value: bool) -> dict:
-        return await self.update_product(ms_id, {"attributes": [{"name": "Выгружено на сайте", "value": value}]})
+        return await self.update_product(
+            ms_id, {"attributes": [{"name": "Выгружено на сайте", "value": value}]}
+        )
 
 
 def _first_row(response: dict) -> dict | None:

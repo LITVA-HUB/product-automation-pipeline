@@ -1,7 +1,6 @@
 import json
 import subprocess
 import sys
-from pathlib import Path
 
 
 def test_dry_run_cli_processes_sample_csv(tmp_path):

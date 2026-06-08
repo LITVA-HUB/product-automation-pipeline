@@ -12,7 +12,9 @@ def construct_names(candidate: ProductCandidate) -> ProductCandidate:
     size = _size(candidate.width_mm.value, candidate.height_mm.value)
 
     candidate.generated_name = " ".join(
-        part for part in [product_type, site_manufacturer, site_collection, color, size, article] if part
+        part
+        for part in [product_type, site_manufacturer, site_collection, color, size, article]
+        if part
     )
 
     manufacturer = _text(candidate.manufacturer.value)

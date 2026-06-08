@@ -32,13 +32,17 @@ class BitrixRestClient:
 
     async def create_or_update_product(self, payload: dict) -> dict:
         if payload.get("id"):
-            response = await self.call("catalog.product.update", {"id": payload["id"], "fields": payload})
+            response = await self.call(
+                "catalog.product.update", {"id": payload["id"], "fields": payload}
+            )
             return response.get("result", {})
         response = await self.call("catalog.product.add", {"fields": payload})
         return response.get("result", {}).get("product", response.get("result", {}))
 
     async def set_properties(self, site_id: str, properties: dict) -> None:
-        await self.call("catalog.product.update", {"id": site_id, "fields": {"propertyValues": properties}})
+        await self.call(
+            "catalog.product.update", {"id": site_id, "fields": {"propertyValues": properties}}
+        )
 
     async def upload_images(
         self,
@@ -51,7 +55,11 @@ class BitrixRestClient:
             "catalog.product.update",
             {
                 "id": site_id,
-                "fields": {"extraImages": extra, "announceImages": announce, "detailImages": detail},
+                "fields": {
+                    "extraImages": extra,
+                    "announceImages": announce,
+                    "detailImages": detail,
+                },
             },
         )
 
@@ -71,7 +79,9 @@ class BitrixRestClient:
         await self.call("catalog.product.update", {"id": site_id, "fields": {"cardType": value}})
 
     async def set_supplier_name(self, site_id: str, supplier: str) -> None:
-        await self.call("catalog.product.update", {"id": site_id, "fields": {"supplierName": supplier}})
+        await self.call(
+            "catalog.product.update", {"id": site_id, "fields": {"supplierName": supplier}}
+        )
 
     async def publish(self, site_id: str) -> None:
         await self.call("catalog.product.update", {"id": site_id, "fields": {"active": "Y"}})

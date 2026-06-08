@@ -13,6 +13,8 @@ CI, or first integration tests.
   extraction runs.
 - `DATABASE_URL`: staging Postgres database.
 - `REDIS_URL`: staging Redis instance for Celery.
+- `TELEGRAM_BOT_TOKEN`: staging bot token, not the production bot.
+- `TELEGRAM_WEBHOOK_SECRET`: random webhook secret for staging.
 
 ## No-Production Safety Rules
 
@@ -41,8 +43,9 @@ only needed for diagnostics/fallbacks.
 
 ## First Integration Smoke Test
 
-1. Start services with `docker compose up --build`.
-2. Run Alembic migrations against staging DB.
+1. Start services with `docker compose up --build` or
+   `docker-compose -p product_pipeline up --build` on legacy Docker Compose.
+2. Confirm the `migrate` service completed `alembic upgrade head`.
 3. Create one product candidate from a known test supplier row.
 4. Run extraction with OpenRouter model `google/gemini-3.1-flash-lite`.
 5. Apply normalization, naming, rules, duplicate detection, and validation.
@@ -51,6 +54,17 @@ only needed for diagnostics/fallbacks.
 8. Confirm `Выгружено на сайте=false` by default.
 9. Approve manually; keep site activation disabled until repeated tests pass.
 10. In a staging-only site sync, set `Выгружено на сайте=true` and verify activation timing.
+
+## Telegram Intake Smoke Test
+
+1. Set the staging webhook to `https://<staging-domain>/telegram/webhook` with
+   `secret_token=$TELEGRAM_WEBHOOK_SECRET`.
+2. Send a text article list, a supplier URL, a spreadsheet, and a photo invoice
+   to the staging bot.
+3. Open `/miniapp` from Telegram and confirm all events appear as pending.
+4. For file/photo inputs, verify `payload.storage_path` points to
+   `LOCAL_STORAGE_PATH/telegram/<event_id>/source.*`.
+5. Confirm no products were created in МойСклад from webhook handling.
 
 ## Evidence to Capture
 

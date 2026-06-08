@@ -25,5 +25,8 @@ TRANSITIONS: dict[tuple[WorkflowStatus, WorkflowEvent], WorkflowStatus] = {
     (WorkflowStatus.READY_FOR_REVIEW, WorkflowEvent.OPERATOR_APPROVE): WorkflowStatus.APPROVED,
     (WorkflowStatus.READY_FOR_REVIEW, WorkflowEvent.OPERATOR_REJECT): WorkflowStatus.REJECTED,
     (WorkflowStatus.APPROVED, WorkflowEvent.PUBLISH_OK): WorkflowStatus.PUBLISHED,
-    (WorkflowStatus.POSSIBLE_DUPLICATE, WorkflowEvent.OPERATOR_CREATE_NEW): WorkflowStatus.DUPLICATE_CHECKED,
+    (
+        WorkflowStatus.POSSIBLE_DUPLICATE,
+        WorkflowEvent.OPERATOR_CREATE_NEW,
+    ): WorkflowStatus.DUPLICATE_CHECKED,
 }

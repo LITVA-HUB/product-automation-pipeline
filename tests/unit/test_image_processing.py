@@ -33,7 +33,9 @@ def test_image_processing_marks_uncertain_classification_for_review():
 
     candidate = make_candidate(raw_images=["x.jpg"])
 
-    updated = ImageProcessingService(UncertainClassifier(), confidence_threshold=0.75).process(candidate)
+    updated = ImageProcessingService(UncertainClassifier(), confidence_threshold=0.75).process(
+        candidate
+    )
 
     assert updated.human_review_required is True
     assert "image_classification_uncertain" in updated.review_reasons

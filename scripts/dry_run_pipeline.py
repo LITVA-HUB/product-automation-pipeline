@@ -11,10 +11,10 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.domain.extraction import ExtractionResult, ImageClassification
-from app.domain.product_candidate import FieldWithConfidence
-from app.services.ingestion.service import IngestionService
-from app.services.pipeline.product_pipeline import ProductPipeline
+from app.domain.extraction import ExtractionResult, ImageClassification  # noqa: E402
+from app.domain.product_candidate import FieldWithConfidence  # noqa: E402
+from app.services.ingestion.service import IngestionService  # noqa: E402
+from app.services.pipeline.product_pipeline import ProductPipeline  # noqa: E402
 
 
 class DemoImageClassifier:
@@ -62,9 +62,7 @@ def build_demo_extraction(row: dict[str, str]) -> ExtractionResult:
                 value="Boost Pearl", confidence=0.95, source="dry_run"
             ),
             "weight_kg": FieldWithConfidence(value=20, confidence=0.9, source="dry_run"),
-            "package_weight_kg": FieldWithConfidence(
-                value=28, confidence=0.9, source="dry_run"
-            ),
+            "package_weight_kg": FieldWithConfidence(value=28, confidence=0.9, source="dry_run"),
         },
         needs_human_review=False,
         warnings=[],
@@ -121,14 +119,18 @@ def json_rows(input_path: Path) -> list[dict[str, str]]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run the product pipeline without external writes.")
+    parser = argparse.ArgumentParser(
+        description="Run the product pipeline without external writes."
+    )
     parser.add_argument("--input", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
 
     payload = run(args.input)
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    args.output.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     print(f"Processed {payload['processed']} product(s):")
     for product in payload["products"]:
         print(f"- {product['generated_name']} -> {product['status']}")

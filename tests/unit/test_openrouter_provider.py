@@ -1,10 +1,10 @@
+import httpx
+import pytest
+
 from app.adapters.llm.openrouter import (
     OPENROUTER_GEMINI_FLASH_LITE_MODEL,
     OpenRouterLLMProvider,
 )
-
-import httpx
-import pytest
 
 
 def test_openrouter_provider_uses_strict_gemini_flash_lite_model():
