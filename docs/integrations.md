@@ -1,4 +1,4 @@
-# MoySklad and Bitrix Integration Notes
+# MoySklad Integration Notes
 
 Reviewed on 2026-06-08.
 
@@ -21,34 +21,33 @@ Important implementation notes:
 - Links to related entities are passed as `meta` objects, not bare ids.
 - Custom product fields must be discovered once and stored as an attribute map.
 - Prices sent to МойСклад must be converted to minor units at the mapper layer.
-- The "Выгружено на сайте" flag is a publication step, not a create step.
+- The "Выгружено на сайте" flag is included as `false` by default when the
+  attribute map is available. Setting it to `true` is a separate publication
+  action after approval.
 
-## 1С-Битрикс / Bitrix24
+## Website Synchronization
 
-Preferred integration path: REST API when catalog and iblock methods are
-available. Fallbacks are CommerceML import or Playwright only for fields that
-cannot be reached by API.
+The primary production path does not require direct Bitrix writes. Products are
+created and configured in МойСклад; the existing site synchronization imports
+them. The МойСклад custom field `Выгружено на сайте` controls site activation:
 
-Expected methods and areas:
+- default `false`: product remains inactive/not intentionally published;
+- explicit `true`: product may become active after approval and synchronization.
 
-- `catalog.product.list` to find products by filter;
-- `catalog.productProperty.list` to discover product property codes;
-- catalog product update methods for trade catalog data;
-- iblock element/property methods for site-specific product fields;
-- incoming webhook with `catalog` and `iblock` permissions.
+Some products must be created only in МойСклад. The default publication mode is
+therefore `ms_only`; operators must explicitly choose site activation.
 
-Open decision before implementing the write adapter:
+## Optional Bitrix Diagnostics
 
-- Scenario A: the card is created by existing МойСклад -> Bitrix exchange, and
-  this system waits for it by МойСклад code, then configures fields.
-- Scenario B: this system creates or updates the card directly.
-
-The architecture supports both scenarios through `SiteClient`.
+The repository keeps optional Bitrix REST adapter code for diagnostics or a
+future fallback, but direct Bitrix API writes are not part of the default
+production write-flow.
 
 ## Required Discovery Scripts
 
 - `scripts/dump_ms_attributes.py`: export МойСклад product custom attributes.
-- `scripts/dump_bitrix_properties.py`: export Bitrix iblock property codes.
+- `scripts/dump_bitrix_properties.py`: optional diagnostic export of Bitrix
+  iblock property codes.
 
 These scripts should be implemented before real writes to staging.
 

@@ -2,7 +2,8 @@
 
 The system is a deterministic product pipeline with LLM-assisted extraction.
 External systems are isolated behind ports so the domain model and business
-rules remain independent from МойСклад, Bitrix, OpenRouter, and storage.
+rules remain independent from МойСклад, OpenRouter, optional Bitrix diagnostics,
+and storage.
 
 ## Pipeline
 
@@ -18,10 +19,8 @@ supplier source
   -> validation before МойСклад
   -> create or update in МойСклад
   -> verify МойСклад
-  -> configure Bitrix card
-  -> verify site
   -> human approval
-  -> publish
+  -> optionally set МойСклад "Выгружено на сайте"
 ```
 
 ## Core Entity
@@ -44,6 +43,8 @@ when persistence is added.
 - site price: `retail_price * 1.15`;
 - site unit coefficient: `units_per_package`;
 - site card type: `Ламинат`;
+- publication mode defaults to `ms_only`;
+- МойСклад field `Выгружено на сайте` defaults to `false`;
 - МойСклад group: value of "Производитель для сайта".
 
 These rules are covered by unit tests before any external write integration is

@@ -113,3 +113,17 @@ class ProductPipeline:
             return candidate
         candidate.status = WorkflowStatus.SITE_VERIFIED
         return candidate
+
+    async def create_in_ms(self, candidate: ProductCandidate, ms_client, ms_maps: dict) -> ProductCandidate:
+        if candidate.status != WorkflowStatus.VALIDATED_BEFORE_MS:
+            raise ValueError("candidate must be validated before МойСклад write")
+
+        ms_payload = candidate_to_ms_product(candidate, ms_maps)
+        ms_product = await ms_client.create_product(ms_payload)
+        candidate.ms_product_id = ms_product["id"]
+        candidate.ms_product_code = ms_product["code"]
+        candidate.status = WorkflowStatus.CREATED_IN_MS
+        if candidate.main_image:
+            await ms_client.upload_image(candidate.ms_product_id, candidate.main_image)
+        candidate.status = WorkflowStatus.MS_VERIFIED
+        return candidate

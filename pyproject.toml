@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "product-automation-pipeline"
 version = "0.1.0"
-description = "Automation pipeline for creating product cards in MoySklad and 1C-Bitrix."
+description = "Production pipeline for creating and publishing product cards through MoySklad."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }

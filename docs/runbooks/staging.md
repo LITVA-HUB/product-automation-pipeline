@@ -9,8 +9,6 @@ CI, or first integration tests.
 ## Required Staging Credentials
 
 - `MOYSKLAD_TOKEN`: token for a test МойСклад account.
-- `BITRIX_WEBHOOK_URL`: incoming webhook for a test Bitrix/1С-Битрикс site with
-  `catalog` permissions and access to the target product iblock.
 - `OPENROUTER_API_KEY`: OpenRouter key with a spending limit suitable for test
   extraction runs.
 - `DATABASE_URL`: staging Postgres database.
@@ -21,7 +19,7 @@ CI, or first integration tests.
 - `AUTO_PUBLISH_ENABLED=false` until validators have been tested on real sample
   products.
 - Do not set the МойСклад `Выгружено на сайте` flag in staging rehearsals unless
-  the linked Bitrix site is also staging.
+  the linked site is also staging.
 - Never commit `.env`, generated maps with secrets, raw supplier exports that are
   not approved for publication, or API responses containing tokens.
 - Use a dedicated supplier prefix or test collection marker for integration
@@ -35,14 +33,11 @@ Run these commands only after the staging credentials are loaded into the shell:
 export MOYSKLAD_TOKEN=...
 ./scripts/dump_ms_attributes.py --out local_storage/staging/ms_attributes.json
 
-export BITRIX_WEBHOOK_URL=...
-./scripts/dump_bitrix_properties.py \
-  --iblock-id <STAGING_PRODUCT_IBLOCK_ID> \
-  --out local_storage/staging/bitrix_properties.json
 ```
 
 The `local_storage/` directory is ignored by git. Review generated maps manually
-before using them in write mappers.
+before using them in write mappers. Bitrix property discovery is optional and
+only needed for diagnostics/fallbacks.
 
 ## First Integration Smoke Test
 
@@ -53,14 +48,13 @@ before using them in write mappers.
 5. Apply normalization, naming, rules, duplicate detection, and validation.
 6. Create the product in test МойСклад only.
 7. Verify the product fields and image manually.
-8. Configure the test Bitrix card.
-9. Verify site price, coefficient, quantity accounting, card type, supplier, and images.
-10. Approve manually; keep publication disabled until repeated tests pass.
+8. Confirm `Выгружено на сайте=false` by default.
+9. Approve manually; keep site activation disabled until repeated tests pass.
+10. In a staging-only site sync, set `Выгружено на сайте=true` and verify activation timing.
 
 ## Evidence to Capture
 
 - Candidate id and workflow audit log.
 - МойСклад product id/code.
-- Bitrix product id.
-- Validation results before МойСклад and after site.
+- Validation results before МойСклад and, when site activation is explicitly tested, after sync.
 - Any human corrections saved in `human_reviews`.

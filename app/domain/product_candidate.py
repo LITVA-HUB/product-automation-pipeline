@@ -7,6 +7,7 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.domain.publication import PublicationMode
 from app.workflow.states import WorkflowStatus
 
 
@@ -68,6 +69,8 @@ class ProductCandidate(BaseModel):
     site_price: Decimal | None = None
     unit_coefficient: Decimal | None = None
     site_card_type: str = "Ламинат"
+    publication_mode: PublicationMode = PublicationMode.MS_ONLY
+    site_export_required: bool = False
 
     main_image: str | None = None
     face_images: list[str] = Field(default_factory=list)

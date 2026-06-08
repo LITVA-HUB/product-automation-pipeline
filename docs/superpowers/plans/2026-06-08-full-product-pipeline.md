@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build a production-oriented automation pipeline for creating, validating, reviewing, and publishing product cards in МойСклад and 1С-Битрикс.
+**Goal:** Build a production-oriented automation pipeline for creating, validating, reviewing, and publishing product cards through МойСклад, with site activation controlled by the МойСклад field `Выгружено на сайте`.
 
-**Architecture:** The system uses a hexagonal architecture: domain models and deterministic business rules are pure Python, services depend on ports, and adapters handle OpenRouter, МойСклад, Bitrix, storage, and persistence. The workflow engine is the only status transition authority. External writes are idempotent and gated by validation.
+**Architecture:** The system uses a hexagonal architecture: domain models and deterministic business rules are pure Python, services depend on ports, and adapters handle OpenRouter, МойСклад, optional Bitrix diagnostics, storage, and persistence. The workflow engine is the only status transition authority. External writes are idempotent and gated by validation.
 
 **Tech Stack:** Python 3.12, FastAPI, Pydantic v2, SQLAlchemy 2.x, Alembic, Celery, Redis, PostgreSQL, httpx, OpenRouter `google/gemini-3.1-flash-lite`, pytest, respx.
 
@@ -16,12 +16,12 @@
 - `app/workflow/`: explicit status/event transition table and workflow engine.
 - `app/services/ingestion/`: CSV/Excel/manual parsers and raw candidate creation.
 - `app/services/naming/`: deterministic product name and original-name construction.
-- `app/services/rules/`: fixed business rules for prices, package type, coefficient, and Bitrix card type.
+- `app/services/rules/`: fixed business rules for prices, package type, coefficient, and site card type.
 - `app/services/duplicates/`: local and МойСклад duplicate detection.
 - `app/services/validation/`: pre-МойСклад, МойСклад, and site validation checklists.
 - `app/adapters/repositories/`: SQLAlchemy repositories.
 - `app/adapters/moysklad/`: REST client and Candidate -> МойСклад payload mapper.
-- `app/adapters/bitrix/`: REST client and Candidate -> Bitrix property mapper.
+- `app/adapters/bitrix/`: optional diagnostic/fallback REST client.
 - `app/adapters/llm/`: OpenRouter adapter locked to `google/gemini-3.1-flash-lite`.
 - `app/tasks/`: Celery task wrappers for pipeline steps.
 - `app/api/`: FastAPI routes for products, review queue, health, and metadata.
@@ -74,7 +74,7 @@
 - Create: `tests/unit/test_external_mappers.py`
 - Create: `tests/unit/test_http_clients.py`
 
-- [x] Write failing mapper tests for МойСклад price minor units, attributes, and Bitrix fixed fields.
+- [x] Write failing mapper tests for МойСклад price minor units, attributes, and optional site fixed fields.
 - [x] Implement mappers without making network calls.
 - [x] Implement thin async HTTP clients with authentication headers and base methods.
 - [x] Run mapper and client tests.
@@ -175,8 +175,8 @@
 
 - [x] Connect extraction, image processing, naming, rules, duplicate detection, and validation into a pre-МойСклад pipeline.
 - [x] Stop possible duplicates before any external writes.
-- [x] Create in МойСклад, upload the main image, configure Bitrix, and verify site fields through port clients.
-- [x] Fill concrete REST adapter methods behind the existing МойСклад and Bitrix ports.
+- [x] Create in МойСклад and upload the main image through port clients.
+- [x] Fill concrete REST adapter methods behind the existing МойСклад port and optional Bitrix diagnostics.
 
 ## Task 13: Reproducible Dry Run
 
@@ -202,3 +202,20 @@
 - [x] Keep `google/gemini-3.1-flash-lite` as the only allowed model.
 - [x] Validate `choices[0].message.content` as `ExtractionResult`.
 - [x] Test the runtime method with `httpx.MockTransport` and no real API key.
+
+## Task 15: MS-Only Default and Arbitrary Intake
+
+**Files:**
+- Create: `app/domain/publication.py`
+- Create: `app/services/intake/service.py`
+- Modify: `app/domain/product_candidate.py`
+- Modify: `app/adapters/moysklad/mappers.py`
+- Modify: `app/services/pipeline/product_pipeline.py`
+- Modify: `app/services/publication/service.py`
+- Create: `tests/unit/test_ms_only_publication_mode.py`
+- Create: `tests/unit/test_intake.py`
+
+- [x] Make `ms_only` the default product publication mode.
+- [x] Set МойСклад `Выгружено на сайте=false` by default in product payloads.
+- [x] Allow site activation only as an explicit publication action.
+- [x] Add typed intake classification for text, supplier URLs, tables, and invoice images.

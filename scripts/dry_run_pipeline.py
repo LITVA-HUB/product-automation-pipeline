@@ -101,6 +101,8 @@ def run(input_path: Path) -> dict:
                 "generated_name": prepared.generated_name,
                 "purchase_price": str(prepared.purchase_price),
                 "site_price": str(prepared.site_price),
+                "publication_mode": prepared.publication_mode.value,
+                "site_export_required": prepared.site_export_required,
                 "main_image": prepared.main_image,
                 "face_images": prepared.face_images,
                 "interior_images": prepared.interior_images,

@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Any
 
 from app.domain.product_candidate import ProductCandidate
+from app.domain.publication import PublicationMode
 
 
 def candidate_to_ms_product(candidate: ProductCandidate, maps: dict[str, Any]) -> dict[str, Any]:
@@ -31,6 +32,7 @@ def candidate_to_ms_product(candidate: ProductCandidate, maps: dict[str, Any]) -
 
     add_attribute(payload, maps, "Код поставщика", candidate.supplier_code.value)
     add_attribute(payload, maps, "Тип карточки", candidate.site_card_type)
+    add_attribute(payload, maps, "Выгружено на сайте", _site_export_flag(candidate))
     return payload
 
 
@@ -44,3 +46,7 @@ def _minor_units(value: Decimal | None) -> int:
     if value is None:
         raise ValueError("price is required")
     return int((Decimal(str(value)) * Decimal("100")).quantize(Decimal("1")))
+
+
+def _site_export_flag(candidate: ProductCandidate) -> bool:
+    return candidate.publication_mode == PublicationMode.MS_AND_SITE_ACTIVE

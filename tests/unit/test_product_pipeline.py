@@ -166,6 +166,7 @@ def ms_maps() -> dict:
         "attributes": {
             "Код поставщика": {"meta": {"href": "https://api/attr/code"}},
             "Тип карточки": {"meta": {"href": "https://api/attr/card"}},
+            "Выгружено на сайте": {"meta": {"href": "https://api/attr/site-export"}},
         },
     }
 
