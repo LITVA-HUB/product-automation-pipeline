@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "product-automation-pipeline"
+version = "0.1.0"
+description = "Automation pipeline for creating product cards in MoySklad and 1C-Bitrix."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "LITVA-HUB" }]
+dependencies = [
+  "alembic>=1.13",
+  "asyncpg>=0.29",
+  "celery>=5.4",
+  "fastapi>=0.115",
+  "httpx>=0.27",
+  "openpyxl>=3.1",
+  "pandas>=2.2",
+  "pdfplumber>=0.11",
+  "pydantic>=2.7",
+  "pydantic-settings>=2.3",
+  "python-multipart>=0.0.9",
+  "redis>=5.0",
+  "sqlalchemy>=2.0",
+  "uvicorn[standard]>=0.30",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.2",
+  "pytest-asyncio>=0.23",
+  "respx>=0.21",
+  "ruff>=0.5",
+]
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

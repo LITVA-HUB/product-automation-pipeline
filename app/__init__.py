@@ -1,0 +1,1 @@
+"""Product automation application package."""

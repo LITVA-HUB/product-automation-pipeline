@@ -1,0 +1,55 @@
+from __future__ import annotations
+
+from enum import StrEnum
+
+
+class WorkflowStatus(StrEnum):
+    IMPORTED = "imported"
+    PARSED = "parsed"
+    LLM_EXTRACTED = "llm_extracted"
+    NORMALIZED = "normalized"
+    NAMED = "named"
+    PRICED = "priced"
+    DUPLICATE_CHECKED = "duplicate_checked"
+    VALIDATED_BEFORE_MS = "validated_before_ms"
+    CREATED_IN_MS = "created_in_ms"
+    MS_VERIFIED = "ms_verified"
+    CREATED_ON_SITE = "created_on_site"
+    SITE_VERIFIED = "site_verified"
+    READY_FOR_REVIEW = "ready_for_review"
+    APPROVED = "approved"
+    PUBLISHED = "published"
+
+    MISSING_DATA = "missing_data"
+    POSSIBLE_DUPLICATE = "possible_duplicate"
+    LLM_LOW_CONFIDENCE = "llm_low_confidence"
+    MS_CREATION_FAILED = "ms_creation_failed"
+    SITE_CREATION_FAILED = "site_creation_failed"
+    VALIDATION_FAILED = "validation_failed"
+    NEEDS_MANUAL_REVIEW = "needs_manual_review"
+    REJECTED = "rejected"
+
+
+class WorkflowEvent(StrEnum):
+    PARSE_OK = "parse_ok"
+    PARSE_FAIL = "parse_fail"
+    EXTRACT_OK = "extract_ok"
+    LOW_CONFIDENCE = "low_confidence"
+    EXTRACT_CONFIDENT = "extract_confident"
+    NAMED_OK = "named_ok"
+    PRICED_OK = "priced_ok"
+    NO_DUPLICATE = "no_duplicate"
+    HARD_OR_SOFT_MATCH = "hard_or_soft_match"
+    VALID = "valid"
+    INVALID = "invalid"
+    MS_OK = "ms_ok"
+    MS_ERROR = "ms_error"
+    VERIFY_OK = "verify_ok"
+    SITE_OK = "site_ok"
+    SITE_ERROR = "site_error"
+    NEEDS_REVIEW = "needs_review"
+    AUTO_OK = "auto_ok"
+    OPERATOR_APPROVE = "operator_approve"
+    OPERATOR_REJECT = "operator_reject"
+    PUBLISH_OK = "publish_ok"
+    OPERATOR_CREATE_NEW = "operator_create_new"
