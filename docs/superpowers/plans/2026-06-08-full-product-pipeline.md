@@ -110,7 +110,7 @@
 
 - [x] Write FastAPI tests for health, product creation, candidate retrieval, review decisions.
 - [x] Implement initial routes for health, manual product creation, candidate retrieval, and review decisions.
-- [ ] Persist human corrections as audit-ready data.
+- [x] Persist human corrections as audit-ready data through SQL repository and API-compatible review payloads.
 
 ## Task 8: Workflow Orchestration and Tasks
 
@@ -120,9 +120,9 @@
 - Create: `app/services/pipeline/orchestrator.py`
 - Create: `tests/unit/test_pipeline_orchestrator.py`
 
-- [ ] Write tests proving each task is idempotent and calls the next workflow transition.
-- [ ] Implement Celery wrappers as thin calls into services.
-- [ ] Keep external write retries isolated to transient errors.
+- [x] Write tests proving each task is idempotent and calls the next workflow transition.
+- [x] Implement Celery wrappers as thin calls into services.
+- [x] Keep external write retries isolated to transient errors by keeping task wrappers orchestration-only.
 
 ## Task 9: Docker, Alembic, and CI
 
@@ -145,6 +145,21 @@
 - Modify: `scripts/dump_bitrix_properties.py`
 - Create: `docs/runbooks/staging.md`
 
-- [ ] Document required staging credentials and no-prod safety rules.
+- [x] Document required staging credentials and no-prod safety rules.
 - [ ] Run discovery scripts against staging when credentials are available.
-- [ ] Store generated attribute/property maps outside tracked secrets.
+- [x] Store generated attribute/property maps outside tracked secrets.
+
+## Task 11: Extraction, Images, and Publication
+
+**Files:**
+- Create: `app/services/extraction/service.py`
+- Create: `app/services/images/service.py`
+- Create: `app/services/publication/service.py`
+- Create: `tests/unit/test_extraction_service.py`
+- Create: `tests/unit/test_image_processing.py`
+- Create: `tests/unit/test_publication.py`
+
+- [x] Apply LLM extraction results only to `FieldWithConfidence` fields.
+- [x] Mark low-confidence extraction and image classification for human review.
+- [x] Deduplicate and group images into main, face, and interior sets.
+- [x] Publish only approved candidates and set final status to `published`.

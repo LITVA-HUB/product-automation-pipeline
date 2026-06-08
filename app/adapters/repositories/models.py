@@ -73,3 +73,28 @@ class ApiRequestRow(Base):
     latency_ms: Mapped[int | None] = mapped_column(nullable=True)
     cost_estimate: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class HumanReviewRow(Base):
+    __tablename__ = "human_reviews"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), index=True)
+    operator: Mapped[str] = mapped_column(String(255))
+    decision: Mapped[str] = mapped_column(String(64))
+    corrections: Mapped[dict] = mapped_column(JSON, default=dict)
+    before: Mapped[dict] = mapped_column(JSON, default=dict)
+    after: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class WorkflowJobRow(Base):
+    __tablename__ = "workflow_jobs"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    product_id: Mapped[str] = mapped_column(ForeignKey("products.id"), index=True)
+    step: Mapped[str] = mapped_column(String(128))
+    status: Mapped[str] = mapped_column(String(32))
+    duration_ms: Mapped[int | None] = mapped_column(nullable=True)
+    error: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

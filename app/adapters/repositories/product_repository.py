@@ -4,7 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.orm import Session
 
-from app.adapters.repositories.models import ProductRow
+from app.adapters.repositories.models import AuditLogRow, ProductRow
 from app.domain.product_candidate import ProductCandidate
 
 
@@ -43,3 +43,31 @@ class ProductRepository:
 
     def get_row(self, product_id: UUID) -> ProductRow | None:
         return self.session.get(ProductRow, str(product_id))
+
+    def add_audit_log(
+        self,
+        product_id: UUID,
+        actor: str,
+        action: str,
+        from_status: str | None,
+        to_status: str | None,
+        details: dict | None = None,
+    ) -> AuditLogRow:
+        row = AuditLogRow(
+            product_id=str(product_id),
+            actor=actor,
+            action=action,
+            from_status=from_status,
+            to_status=to_status,
+            details=details or {},
+        )
+        self.session.add(row)
+        return row
+
+    def list_audit_logs(self, product_id: UUID) -> list[AuditLogRow]:
+        return (
+            self.session.query(AuditLogRow)
+            .filter(AuditLogRow.product_id == str(product_id))
+            .order_by(AuditLogRow.created_at.asc(), AuditLogRow.id.asc())
+            .all()
+        )

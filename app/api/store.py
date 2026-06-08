@@ -5,3 +5,4 @@ from uuid import UUID
 from app.domain.product_candidate import ProductCandidate
 
 PRODUCTS: dict[UUID, ProductCandidate] = {}
+REVIEWS: list[dict] = []

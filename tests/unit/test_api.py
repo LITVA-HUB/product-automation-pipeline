@@ -42,3 +42,26 @@ def test_review_approve_moves_ready_item_to_approved():
 
     assert review.status_code == 200
     assert review.json()["status"] == "approved"
+
+
+def test_review_decision_accepts_audit_ready_corrections():
+    client = TestClient(app)
+    created = client.post(
+        "/products/manual",
+        json={"supplier": "Kerama", "raw_name": "Tile", "raw_article": "A-1"},
+    )
+    product_id = created.json()["id"]
+
+    review = client.post(
+        f"/review/{product_id}/decision",
+        json={
+            "decision": "approve",
+            "operator": "operator@example.com",
+            "corrections": {"color": "серый"},
+            "before": {"color": "бежевый"},
+            "after": {"color": "серый"},
+        },
+    )
+
+    assert review.status_code == 200
+    assert review.json()["review"]["corrections"] == {"color": "серый"}
