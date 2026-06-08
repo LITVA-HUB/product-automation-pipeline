@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from pathlib import Path
 from typing import Annotated
-from uuid import UUID
+from uuid import UUID, uuid4
 
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.adapters.moysklad.client import MoySkladRestClient
@@ -15,6 +16,7 @@ from app.api.auth import require_telegram_operator
 from app.api.dependencies import get_db_session, get_settings
 from app.config import Settings
 from app.domain.publication import PublicationMode
+from app.services.intake.service import IntakeService
 from app.services.miniapp.workflow import (
     CreateMoySkladRequest,
     DraftFromIntakeRequest,
@@ -25,6 +27,7 @@ from app.services.miniapp.workflow import (
     load_ms_maps,
     validate_operator_candidate,
 )
+from app.services.telegram.intake import IntakeEvent
 from app.workflow.states import WorkflowStatus
 
 router = APIRouter(prefix="/miniapp", tags=["miniapp"])
@@ -36,6 +39,10 @@ async def miniapp_index() -> HTMLResponse:
     return HTMLResponse(html)
 
 
+class MiniAppTextIntakeRequest(BaseModel):
+    text: str = Field(min_length=1, max_length=20_000)
+
+
 @router.get("/api/intake/events")
 async def miniapp_intake_events(
     session: Annotated[Session, Depends(get_db_session)],
@@ -45,6 +52,59 @@ async def miniapp_intake_events(
     require_telegram_operator(settings, x_telegram_init_data)
     rows = IntakeRepository(session).list_pending(limit=200)
     return [row_to_event(row).model_dump(mode="json") for row in rows]
+
+
+@router.post("/api/intake/text", status_code=status.HTTP_201_CREATED)
+async def miniapp_submit_text_intake(
+    request: MiniAppTextIntakeRequest,
+    session: Annotated[Session, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    x_telegram_init_data: str | None = Header(default=None),
+) -> dict:
+    require_telegram_operator(settings, x_telegram_init_data)
+    item = IntakeService().from_text(request.text)
+    event = IntakeEvent(
+        source="miniapp",
+        item=item,
+        raw_update={"miniapp": {"type": "text", "text": request.text}},
+    )
+    row = IntakeRepository(session).save(event)
+    return row_to_event(row).model_dump(mode="json")
+
+
+@router.post("/api/intake/file", status_code=status.HTTP_201_CREATED)
+async def miniapp_submit_file_intake(
+    session: Annotated[Session, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    file: Annotated[UploadFile, File()],
+    caption: Annotated[str, Form()] = "",
+    x_telegram_init_data: str | None = Header(default=None),
+) -> dict:
+    require_telegram_operator(settings, x_telegram_init_data)
+    event_id = uuid4()
+    storage_path = await _save_miniapp_upload(settings, event_id, file)
+    item = IntakeService().from_file(
+        file_name=file.filename or f"{event_id}.bin",
+        content_type=file.content_type or "application/octet-stream",
+        storage_path=str(storage_path),
+    )
+    if caption.strip():
+        item.payload["caption"] = caption.strip()
+    event = IntakeEvent(
+        id=event_id,
+        source="miniapp",
+        item=item,
+        raw_update={
+            "miniapp": {
+                "type": "file",
+                "file_name": file.filename,
+                "content_type": file.content_type,
+                "caption": caption,
+            }
+        },
+    )
+    row = IntakeRepository(session).save(event)
+    return row_to_event(row).model_dump(mode="json")
 
 
 @router.post(
@@ -196,3 +256,12 @@ def _load_maps_or_503(settings: Settings) -> dict:
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="MoySklad maps are not configured",
         ) from exc
+
+
+async def _save_miniapp_upload(settings: Settings, event_id: UUID, file: UploadFile) -> Path:
+    suffix = Path(file.filename or "").suffix
+    target_dir = Path(settings.local_storage_path) / "miniapp" / str(event_id)
+    target_dir.mkdir(parents=True, exist_ok=True)
+    target = target_dir / f"source{suffix}"
+    target.write_bytes(await file.read())
+    return target

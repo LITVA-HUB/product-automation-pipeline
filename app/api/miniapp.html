@@ -128,8 +128,36 @@
       }
 
       .queue,
-      .workspace {
+      .workspace,
+      .quick-submit {
         min-width: 0;
+      }
+
+      .quick-submit {
+        grid-column: 1 / -1;
+      }
+
+      .quick-submit textarea {
+        min-height: 116px;
+      }
+
+      .submit-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(220px, 320px);
+        gap: 12px;
+      }
+
+      .submit-side {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+      }
+
+      .submit-actions {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
       .queue-list {
@@ -320,7 +348,17 @@
           grid-template-columns: 1fr;
         }
 
+        .submit-layout {
+          grid-template-columns: 1fr;
+        }
+
         main.editing .queue {
+          display: none;
+        }
+
+        main.editing .quick-submit,
+        main.auth-required .quick-submit,
+        main.auth-required .queue {
           display: none;
         }
 
@@ -355,12 +393,43 @@
   <body>
     <main id="appShell">
       <header>
-        <h1 id="appTitle">Очередь товаров</h1>
+        <h1 id="appTitle">Новая плитка</h1>
         <div class="toolbar">
           <span id="count" class="count">0</span>
           <button id="refresh" class="secondary" type="button" aria-label="Обновить">↻</button>
         </div>
       </header>
+
+      <section class="quick-submit panel">
+        <div class="panel-head">
+          <div>
+            <h2>Добавить данные</h2>
+            <div class="status">Текст, ссылка, список, таблица или фото накладной</div>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="submit-layout">
+            <label>
+              Вставь что есть
+              <textarea id="intakeText" placeholder="Например: ART-123 Atlas 60x120 цена 2400"></textarea>
+            </label>
+            <div class="submit-side">
+              <label>
+                Файл или фото
+                <input id="intakeFile" type="file" accept="image/*,.csv,.xls,.xlsx,.pdf" />
+              </label>
+              <label>
+                Комментарий
+                <input id="intakeCaption" autocomplete="off" />
+              </label>
+              <div class="submit-actions">
+                <button id="submitIntakeButton" type="button">Добавить в очередь</button>
+                <div id="submitStatus" class="status"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
 
       <section class="queue">
         <div id="queueStatus" class="status">Загрузка...</div>
@@ -533,10 +602,12 @@
       ];
 
       async function api(path, options = {}) {
+        const body = options.body;
+        const isForm = body instanceof FormData;
         const response = await fetch(route(path), {
           ...options,
           headers: {
-            "Content-Type": "application/json",
+            ...(isForm ? {} : { "Content-Type": "application/json" }),
             ...authHeaders(),
             ...(options.headers || {}),
           },
@@ -548,6 +619,38 @@
           throw new Error(detail || `HTTP ${response.status}`);
         }
         return data;
+      }
+
+      async function submitIntake() {
+        const text = byId("intakeText").value.trim();
+        const file = byId("intakeFile").files[0];
+        const caption = byId("intakeCaption").value.trim();
+        if (!text && !file) {
+          setSubmitStatus("Добавь текст или файл", "warn");
+          return;
+        }
+        setSubmitStatus("Добавляю...");
+        let event;
+        if (file) {
+          const form = new FormData();
+          form.append("file", file);
+          form.append("caption", caption || text);
+          event = await api("/miniapp/api/intake/file", {
+            method: "POST",
+            body: form,
+          });
+        } else {
+          event = await api("/miniapp/api/intake/text", {
+            method: "POST",
+            body: JSON.stringify({ text }),
+          });
+        }
+        byId("intakeText").value = "";
+        byId("intakeFile").value = "";
+        byId("intakeCaption").value = "";
+        setSubmitStatus("Добавлено", "ok");
+        await refreshQueue();
+        selectEvent(event);
       }
 
       async function loadQueue() {
@@ -678,7 +781,7 @@
       function showQueue() {
         state.selectedEvent = null;
         state.product = null;
-        setAppTitle("Очередь товаров");
+        setAppTitle("Новая плитка");
         setEditingMode(false);
         hideAuthRequired();
         byId("eventPanel").hidden = true;
@@ -763,6 +866,11 @@
         byId("queueStatus").textContent = value;
       }
 
+      function setSubmitStatus(value, tone = "") {
+        byId("submitStatus").textContent = value;
+        byId("submitStatus").className = `status ${tone}`;
+      }
+
       function labelKind(kind) {
         return {
           text: "Текст",
@@ -796,10 +904,13 @@
       }
 
       function refreshQueue() {
-        loadQueue().catch(handleApiError);
+        return loadQueue().catch(handleApiError);
       }
 
       byId("refresh").addEventListener("click", refreshQueue);
+      byId("submitIntakeButton").addEventListener("click", () => {
+        submitIntake().catch((error) => setSubmitStatus(humanizeError(error.message), "error"));
+      });
       byId("backFromEventButton").addEventListener("click", showQueue);
       byId("backFromProductButton").addEventListener("click", showQueue);
       byId("draftButton").addEventListener("click", () => {
