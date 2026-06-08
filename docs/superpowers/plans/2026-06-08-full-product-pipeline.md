@@ -163,3 +163,17 @@
 - [x] Mark low-confidence extraction and image classification for human review.
 - [x] Deduplicate and group images into main, face, and interior sets.
 - [x] Publish only approved candidates and set final status to `published`.
+
+## Task 12: End-to-End Application Pipeline and Adapter Methods
+
+**Files:**
+- Create: `app/services/pipeline/product_pipeline.py`
+- Modify: `app/adapters/moysklad/client.py`
+- Modify: `app/adapters/bitrix/rest_client.py`
+- Create: `tests/unit/test_product_pipeline.py`
+- Create: `tests/unit/test_rest_adapter_methods.py`
+
+- [x] Connect extraction, image processing, naming, rules, duplicate detection, and validation into a pre-МойСклад pipeline.
+- [x] Stop possible duplicates before any external writes.
+- [x] Create in МойСклад, upload the main image, configure Bitrix, and verify site fields through port clients.
+- [x] Fill concrete REST adapter methods behind the existing МойСклад and Bitrix ports.
