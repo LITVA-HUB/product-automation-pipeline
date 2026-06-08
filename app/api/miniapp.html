@@ -60,6 +60,11 @@
         color: var(--text);
       }
 
+      button.compact {
+        min-height: 36px;
+        padding: 0 12px;
+      }
+
       button.danger {
         background: var(--danger);
         color: #ffffff;
@@ -171,6 +176,15 @@
         border: 1px solid var(--line);
         border-radius: 8px;
         background: var(--surface);
+      }
+
+      .auth-panel {
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        min-height: 340px;
+        padding: 28px 20px;
+        text-align: center;
       }
 
       .panel-head,
@@ -291,6 +305,24 @@
           grid-template-columns: 1fr;
         }
 
+        main.editing .queue {
+          display: none;
+        }
+
+        main.editing header .toolbar {
+          display: none;
+        }
+
+        .panel-head {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .panel-head > button,
+        .panel-head > select {
+          width: 100%;
+        }
+
         .form-grid {
           grid-template-columns: 1fr;
         }
@@ -302,9 +334,9 @@
     </style>
   </head>
   <body>
-    <main>
+    <main id="appShell">
       <header>
-        <h1>Очередь товаров</h1>
+        <h1 id="appTitle">Очередь товаров</h1>
         <div class="toolbar">
           <span id="count" class="count">0</span>
           <button id="refresh" class="secondary" type="button" aria-label="Обновить">↻</button>
@@ -317,6 +349,10 @@
       </section>
 
       <section class="workspace">
+        <div id="authPanel" class="panel auth-panel" hidden>
+          <h2>Откройте через Telegram</h2>
+          <p class="status">Mini App принимает действия только из Telegram, чтобы не пустить случайные записи в рабочий процесс.</p>
+        </div>
         <div id="emptyState" class="panel empty">Выберите входящее сообщение</div>
         <article id="eventPanel" class="panel" hidden>
           <div class="panel-head">
@@ -324,7 +360,10 @@
               <h2 id="eventTitle">Входящее</h2>
               <div id="eventMeta" class="status"></div>
             </div>
-            <button id="draftButton" type="button">Черновик</button>
+            <div class="toolbar">
+              <button id="backFromEventButton" class="secondary compact" type="button">К очереди</button>
+              <button id="draftButton" class="compact" type="button">Черновик</button>
+            </div>
           </div>
           <div class="panel-body">
             <label class="span-2">
@@ -341,11 +380,14 @@
               <h2 id="productTitle">Карточка</h2>
               <div id="productStatus" class="status"></div>
             </div>
-            <select id="publicationMode" aria-label="Режим публикации">
-              <option value="ms_only">Только МС</option>
-              <option value="ms_and_site_inactive">МС + сайт неактивно</option>
-              <option value="ms_and_site_active">МС + сайт активно</option>
-            </select>
+            <div class="toolbar">
+              <button id="backFromProductButton" class="secondary compact" type="button">К очереди</button>
+              <select id="publicationMode" aria-label="Режим публикации">
+                <option value="ms_only">Только МС</option>
+                <option value="ms_and_site_inactive">МС + сайт неактивно</option>
+                <option value="ms_and_site_active">МС + сайт активно</option>
+              </select>
+            </div>
           </div>
           <div class="panel-body">
             <div class="form-grid">
@@ -449,6 +491,7 @@
       const route = (path) => `${appBase}${path}`;
       const authHeaders = () => (tg?.initData ? { "X-Telegram-Init-Data": tg.initData } : {});
       const byId = (id) => document.getElementById(id);
+      const appShell = byId("appShell");
       const fields = [
         "supplier",
         "raw_name",
@@ -489,6 +532,7 @@
       }
 
       async function loadQueue() {
+        hideAuthRequired();
         setQueueStatus("Загрузка...");
         state.events = await api("/miniapp/api/intake/events");
         byId("count").textContent = String(state.events.length);
@@ -518,6 +562,9 @@
       function selectEvent(event) {
         state.selectedEvent = event;
         state.product = null;
+        setAppTitle("Входящее сообщение");
+        setEditingMode(true);
+        hideAuthRequired();
         renderQueue();
         byId("emptyState").hidden = true;
         byId("productPanel").hidden = true;
@@ -536,6 +583,7 @@
         });
         state.product = data.product;
         byId("eventPanel").hidden = true;
+        setEditingMode(true);
         renderProduct();
         await loadQueue();
       }
@@ -573,15 +621,19 @@
           state.product = data.product;
           renderProduct("Создано в МС", "ok");
         } catch (error) {
-          renderProduct(error.message, "error");
+          renderProduct(humanizeError(error.message), "error");
         }
       }
 
       function renderProduct(message, tone = "") {
+        setEditingMode(true);
+        hideAuthRequired();
         byId("emptyState").hidden = true;
         byId("eventPanel").hidden = true;
         byId("productPanel").hidden = false;
-        byId("productTitle").textContent = state.product.generated_name || "Карточка товара";
+        const title = state.product.generated_name || "Карточка товара";
+        setAppTitle(title);
+        byId("productTitle").textContent = title;
         byId("productStatus").textContent = message || state.product.status;
         byId("productStatus").className = `status ${tone}`;
         byId("publicationMode").value = state.product.publication_mode || "ms_only";
@@ -589,6 +641,49 @@
           byId(field).value = valueForField(state.product, field);
         }
         renderErrors(state.product.validation?.errors || state.product.validation_errors || []);
+      }
+
+      function showQueue() {
+        state.selectedEvent = null;
+        state.product = null;
+        setAppTitle("Очередь товаров");
+        setEditingMode(false);
+        hideAuthRequired();
+        byId("eventPanel").hidden = true;
+        byId("productPanel").hidden = true;
+        byId("emptyState").hidden = false;
+        renderQueue();
+      }
+
+      function setEditingMode(enabled) {
+        appShell.classList.toggle("editing", enabled);
+      }
+
+      function showAuthRequired() {
+        setEditingMode(false);
+        setAppTitle("Mini App");
+        byId("authPanel").hidden = false;
+        byId("emptyState").hidden = true;
+        byId("eventPanel").hidden = true;
+        byId("productPanel").hidden = true;
+        byId("count").textContent = "0";
+        setQueueStatus("Нет доступа из браузера");
+        byId("queueList").replaceChildren();
+      }
+
+      function hideAuthRequired() {
+        byId("authPanel").hidden = true;
+      }
+
+      function setAppTitle(value) {
+        byId("appTitle").textContent = value;
+      }
+
+      function humanizeError(message) {
+        if (message.includes("MoySklad writes are disabled")) {
+          return "Запись в МойСклад выключена в настройках";
+        }
+        return message;
       }
 
       function formPayload() {
@@ -660,20 +755,28 @@
       }
 
       byId("refresh").addEventListener("click", loadQueue);
+      byId("backFromEventButton").addEventListener("click", showQueue);
+      byId("backFromProductButton").addEventListener("click", showQueue);
       byId("draftButton").addEventListener("click", () => {
         createDraft().catch((error) => setQueueStatus(error.message));
       });
       byId("saveButton").addEventListener("click", () => {
-        saveDraft().catch((error) => renderProduct(error.message, "error"));
+        saveDraft().catch((error) => renderProduct(humanizeError(error.message), "error"));
       });
       byId("validateButton").addEventListener("click", () => {
-        validateProduct().catch((error) => renderProduct(error.message, "error"));
+        validateProduct().catch((error) => renderProduct(humanizeError(error.message), "error"));
       });
       byId("createMsButton").addEventListener("click", () => {
-        createInMs().catch((error) => renderProduct(error.message, "error"));
+        createInMs().catch((error) => renderProduct(humanizeError(error.message), "error"));
       });
 
-      loadQueue().catch((error) => setQueueStatus(error.message));
+      loadQueue().catch((error) => {
+        if (error.message.includes("Telegram initData is required")) {
+          showAuthRequired();
+          return;
+        }
+        setQueueStatus(error.message);
+      });
     </script>
   </body>
 </html>
