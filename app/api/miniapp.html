@@ -10,7 +10,7 @@
         color-scheme: light dark;
         --bg: var(--tg-theme-bg-color, #f5f7f8);
         --surface: var(--tg-theme-secondary-bg-color, #ffffff);
-        --surface-soft: rgba(255, 255, 255, 0.68);
+        --surface-soft: color-mix(in srgb, var(--surface) 88%, var(--button) 12%);
         --text: var(--tg-theme-text-color, #17212b);
         --muted: var(--tg-theme-hint-color, #667085);
         --line: rgba(93, 108, 123, 0.22);
@@ -140,12 +140,14 @@
 
       .event-button {
         width: 100%;
-        min-height: 78px;
+        min-height: 92px;
         border: 1px solid var(--line);
         background: var(--surface-soft);
         color: var(--text);
         text-align: left;
         font-weight: 500;
+        display: grid;
+        gap: 10px;
       }
 
       .event-button.active {
@@ -162,14 +164,27 @@
         font-weight: 750;
       }
 
+      .event-status {
+        color: var(--button);
+        font-size: 13px;
+        font-weight: 800;
+      }
+
       .event-preview {
-        color: var(--muted);
+        color: var(--text);
         display: -webkit-box;
         overflow: hidden;
         -webkit-box-orient: vertical;
         -webkit-line-clamp: 2;
         font-size: 13px;
         line-height: 1.35;
+      }
+
+      .event-action {
+        justify-self: start;
+        color: var(--button);
+        font-size: 13px;
+        font-weight: 800;
       }
 
       .panel {
@@ -306,6 +321,10 @@
         }
 
         main.editing .queue {
+          display: none;
+        }
+
+        main:not(.editing):not(.auth-required) .workspace {
           display: none;
         }
 
@@ -547,13 +566,26 @@
           const button = document.createElement("button");
           button.type = "button";
           button.className = `event-button ${state.selectedEvent?.id === event.id ? "active" : ""}`;
-          button.innerHTML = `
-            <div class="event-kind">
-              <span>${labelKind(event.item.kind)}</span>
-              <span>${event.status}</span>
-            </div>
-            <div class="event-preview">${escapeHtml(previewEvent(event))}</div>
-          `;
+          button.setAttribute("aria-label", `Открыть ${labelKind(event.item.kind)}`);
+
+          const kind = document.createElement("div");
+          kind.className = "event-kind";
+          const kindLabel = document.createElement("span");
+          kindLabel.textContent = labelKind(event.item.kind);
+          const status = document.createElement("span");
+          status.className = "event-status";
+          status.textContent = labelStatus(event.status);
+          kind.append(kindLabel, status);
+
+          const preview = document.createElement("div");
+          preview.className = "event-preview";
+          preview.textContent = previewEvent(event);
+
+          const action = document.createElement("div");
+          action.className = "event-action";
+          action.textContent = "Открыть";
+
+          button.append(kind, preview, action);
           button.addEventListener("click", () => selectEvent(event));
           list.append(button);
         }
@@ -661,6 +693,7 @@
 
       function showAuthRequired() {
         setEditingMode(false);
+        appShell.classList.add("auth-required");
         setAppTitle("Mini App");
         byId("authPanel").hidden = false;
         byId("emptyState").hidden = true;
@@ -672,6 +705,7 @@
       }
 
       function hideAuthRequired() {
+        appShell.classList.remove("auth-required");
         byId("authPanel").hidden = true;
       }
 
@@ -739,22 +773,33 @@
         }[kind] || kind;
       }
 
+      function labelStatus(status) {
+        return {
+          pending: "Новый",
+          drafted: "Черновик",
+          processing: "В работе",
+          failed: "Ошибка",
+        }[status] || status;
+      }
+
       function previewEvent(event) {
         const payload = event.item.payload || {};
         return payload.text || payload.caption || payload.url || payload.file_name || event.id;
       }
 
-      function escapeHtml(value) {
-        return String(value).replace(/[&<>"']/g, (char) => ({
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-          "'": "&#039;",
-        })[char]);
+      function handleApiError(error) {
+        if (error.message.includes("Telegram initData is required")) {
+          showAuthRequired();
+          return;
+        }
+        setQueueStatus(humanizeError(error.message));
       }
 
-      byId("refresh").addEventListener("click", loadQueue);
+      function refreshQueue() {
+        loadQueue().catch(handleApiError);
+      }
+
+      byId("refresh").addEventListener("click", refreshQueue);
       byId("backFromEventButton").addEventListener("click", showQueue);
       byId("backFromProductButton").addEventListener("click", showQueue);
       byId("draftButton").addEventListener("click", () => {
@@ -770,13 +815,7 @@
         createInMs().catch((error) => renderProduct(humanizeError(error.message), "error"));
       });
 
-      loadQueue().catch((error) => {
-        if (error.message.includes("Telegram initData is required")) {
-          showAuthRequired();
-          return;
-        }
-        setQueueStatus(error.message);
-      });
+      refreshQueue();
     </script>
   </body>
 </html>
