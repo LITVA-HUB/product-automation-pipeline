@@ -190,3 +190,15 @@
 - [x] Add a dry-run CLI that exercises the local pipeline without external writes.
 - [x] Emit JSON evidence with status, prices, name, and image grouping.
 - [x] Document the command in README.
+
+## Task 14: OpenRouter Runtime Extraction
+
+**Files:**
+- Modify: `app/adapters/llm/openrouter.py`
+- Modify: `tests/unit/test_openrouter_provider.py`
+- Modify: `docs/openrouter.md`
+
+- [x] Add async HTTP extraction through OpenRouter chat completions.
+- [x] Keep `google/gemini-3.1-flash-lite` as the only allowed model.
+- [x] Validate `choices[0].message.content` as `ExtractionResult`.
+- [x] Test the runtime method with `httpx.MockTransport` and no real API key.
