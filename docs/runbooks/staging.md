@@ -20,6 +20,8 @@ CI, or first integration tests.
 
 - `AUTO_PUBLISH_ENABLED=false` until validators have been tested on real sample
   products.
+- `MOYSKLAD_WRITES_ENABLED=false` on live staging until МойСклад maps and a test
+  product cleanup process are verified.
 - Do not set the МойСклад `Выгружено на сайте` flag in staging rehearsals unless
   the linked site is also staging.
 - Never commit `.env`, generated maps with secrets, raw supplier exports that are
@@ -65,6 +67,13 @@ only needed for diagnostics/fallbacks.
 4. For file/photo inputs, verify `payload.storage_path` points to
    `LOCAL_STORAGE_PATH/telegram/<event_id>/source.*`.
 5. Confirm no products were created in МойСклад from webhook handling.
+
+Current live staging path:
+
+- Mini App: `https://api-staging.lumatestdomen.online/product-automation/miniapp`
+- Webhook: `https://api-staging.lumatestdomen.online/product-automation/telegram/webhook`
+- Systemd service: `product-automation-api.service`
+- Local upstream: `127.0.0.1:8020`
 
 ## Evidence to Capture
 

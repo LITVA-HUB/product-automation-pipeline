@@ -8,17 +8,26 @@
     <style>
       :root {
         color-scheme: light dark;
-        --bg: var(--tg-theme-bg-color, #f7f8fa);
+        --bg: var(--tg-theme-bg-color, #f5f7f8);
+        --surface: var(--tg-theme-secondary-bg-color, #ffffff);
+        --surface-soft: rgba(255, 255, 255, 0.68);
         --text: var(--tg-theme-text-color, #17212b);
-        --muted: var(--tg-theme-hint-color, #6b7280);
+        --muted: var(--tg-theme-hint-color, #667085);
         --line: rgba(93, 108, 123, 0.22);
         --button: var(--tg-theme-button-color, #2563eb);
         --button-text: var(--tg-theme-button-text-color, #ffffff);
+        --danger: #b42318;
+        --ok: #027a48;
+        --warn: #b54708;
         font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       * {
         box-sizing: border-box;
+      }
+
+      [hidden] {
+        display: none !important;
       }
 
       body {
@@ -28,25 +37,11 @@
         color: var(--text);
       }
 
-      main {
-        max-width: 760px;
-        margin: 0 auto;
-        padding: 16px;
-      }
-
-      header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 8px 0 16px;
-        border-bottom: 1px solid var(--line);
-      }
-
-      h1 {
-        margin: 0;
-        font-size: 20px;
-        font-weight: 700;
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
       }
 
       button {
@@ -56,51 +51,253 @@
         padding: 0 14px;
         background: var(--button);
         color: var(--button-text);
-        font: inherit;
-        font-weight: 650;
+        font-weight: 700;
       }
 
-      .status {
-        margin: 14px 0;
+      button.secondary {
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--text);
+      }
+
+      button.danger {
+        background: var(--danger);
+        color: #ffffff;
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.45;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+        gap: 16px;
+        width: min(1180px, 100%);
+        margin: 0 auto;
+        padding: 14px;
+      }
+
+      header {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        min-height: 48px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 20px;
+        line-height: 1.2;
+      }
+
+      h2 {
+        font-size: 17px;
+      }
+
+      h3 {
+        font-size: 14px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .count {
         color: var(--muted);
         font-size: 14px;
       }
 
-      .list {
-        display: grid;
-        gap: 10px;
+      .queue,
+      .workspace {
+        min-width: 0;
       }
 
-      .event {
+      .queue-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 12px;
+      }
+
+      .event-button {
+        width: 100%;
+        min-height: 78px;
+        border: 1px solid var(--line);
+        background: var(--surface-soft);
+        color: var(--text);
+        text-align: left;
+        font-weight: 500;
+      }
+
+      .event-button.active {
+        border-color: var(--button);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--button) 16%, transparent);
+      }
+
+      .event-kind {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+        font-weight: 750;
+      }
+
+      .event-preview {
+        color: var(--muted);
+        display: -webkit-box;
+        overflow: hidden;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .panel {
         border: 1px solid var(--line);
         border-radius: 8px;
-        padding: 12px;
-        background: rgba(255, 255, 255, 0.42);
+        background: var(--surface);
       }
 
-      .event-top {
+      .panel-head,
+      .panel-body,
+      .panel-actions {
+        padding: 14px;
+      }
+
+      .panel-head {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        gap: 10px;
-        margin-bottom: 8px;
+        gap: 12px;
+        border-bottom: 1px solid var(--line);
       }
 
-      .kind {
+      .panel-body {
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        border-top: 1px solid var(--line);
+      }
+
+      .status {
+        min-height: 22px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .status.ok {
+        color: var(--ok);
+      }
+
+      .status.warn {
+        color: var(--warn);
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 12px;
         font-weight: 700;
       }
 
-      .source {
-        color: var(--muted);
+      input,
+      select,
+      textarea {
+        width: 100%;
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 8px 10px;
+        background: transparent;
+        color: var(--text);
+      }
+
+      textarea {
+        min-height: 72px;
+        resize: vertical;
+      }
+
+      .span-2 {
+        grid-column: span 2;
+      }
+
+      .errors {
+        display: grid;
+        gap: 6px;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+      }
+
+      .errors li {
+        border-left: 3px solid var(--danger);
+        padding: 6px 8px;
+        background: color-mix(in srgb, var(--danger) 8%, transparent);
+        color: var(--text);
         font-size: 13px;
       }
 
-      pre {
+      .raw {
         margin: 0;
+        max-height: 140px;
         overflow: auto;
         white-space: pre-wrap;
         word-break: break-word;
         color: var(--text);
-        font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font: 12px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      }
+
+      .empty {
+        display: grid;
+        place-items: center;
+        min-height: 340px;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+
+        .form-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .span-2 {
+          grid-column: auto;
+        }
       }
     </style>
   </head>
@@ -108,48 +305,352 @@
     <main>
       <header>
         <h1>Очередь товаров</h1>
-        <button id="refresh" type="button" aria-label="Обновить очередь">↻</button>
+        <div class="toolbar">
+          <span id="count" class="count">0</span>
+          <button id="refresh" class="secondary" type="button" aria-label="Обновить">↻</button>
+        </div>
       </header>
-      <div id="status" class="status">Загрузка...</div>
-      <section id="list" class="list" aria-live="polite"></section>
+
+      <section class="queue">
+        <div id="queueStatus" class="status">Загрузка...</div>
+        <div id="queueList" class="queue-list"></div>
+      </section>
+
+      <section class="workspace">
+        <div id="emptyState" class="panel empty">Выберите входящее сообщение</div>
+        <article id="eventPanel" class="panel" hidden>
+          <div class="panel-head">
+            <div>
+              <h2 id="eventTitle">Входящее</h2>
+              <div id="eventMeta" class="status"></div>
+            </div>
+            <button id="draftButton" type="button">Черновик</button>
+          </div>
+          <div class="panel-body">
+            <label class="span-2">
+              Поставщик
+              <input id="draftSupplier" value="Не указан" autocomplete="off" />
+            </label>
+            <pre id="rawPayload" class="raw"></pre>
+          </div>
+        </article>
+
+        <article id="productPanel" class="panel" hidden>
+          <div class="panel-head">
+            <div>
+              <h2 id="productTitle">Карточка</h2>
+              <div id="productStatus" class="status"></div>
+            </div>
+            <select id="publicationMode" aria-label="Режим публикации">
+              <option value="ms_only">Только МС</option>
+              <option value="ms_and_site_inactive">МС + сайт неактивно</option>
+              <option value="ms_and_site_active">МС + сайт активно</option>
+            </select>
+          </div>
+          <div class="panel-body">
+            <div class="form-grid">
+              <label>
+                Поставщик
+                <input id="supplier" autocomplete="off" />
+              </label>
+              <label>
+                Группа МС
+                <input id="group_ms" autocomplete="off" />
+              </label>
+              <label class="span-2">
+                Название поставщика
+                <input id="raw_name" autocomplete="off" />
+              </label>
+              <label>
+                Артикул
+                <input id="article" autocomplete="off" />
+              </label>
+              <label>
+                Код поставщика
+                <input id="supplier_code" autocomplete="off" />
+              </label>
+              <label>
+                Ед. изм.
+                <input id="unit" value="м²" autocomplete="off" />
+              </label>
+              <label>
+                В упаковке
+                <input id="units_per_package" inputmode="decimal" autocomplete="off" />
+              </label>
+              <label>
+                Цена розница
+                <input id="retail_price" inputmode="decimal" autocomplete="off" />
+              </label>
+              <label>
+                Основное фото
+                <input id="main_image" autocomplete="off" />
+              </label>
+              <label>
+                Ширина, мм
+                <input id="width_mm" inputmode="numeric" autocomplete="off" />
+              </label>
+              <label>
+                Высота, мм
+                <input id="height_mm" inputmode="numeric" autocomplete="off" />
+              </label>
+              <label>
+                Толщина, мм
+                <input id="thickness_mm" inputmode="decimal" autocomplete="off" />
+              </label>
+              <label>
+                Цвет
+                <input id="color" autocomplete="off" />
+              </label>
+              <label>
+                Поверхность
+                <input id="surface" autocomplete="off" />
+              </label>
+              <label>
+                Текстура
+                <input id="texture" autocomplete="off" />
+              </label>
+              <label>
+                Производитель сайт
+                <input id="site_manufacturer" autocomplete="off" />
+              </label>
+              <label>
+                Коллекция сайт
+                <input id="site_collection" autocomplete="off" />
+              </label>
+              <label class="span-2">
+                Описание
+                <textarea id="raw_description"></textarea>
+              </label>
+            </div>
+            <h3>Проверка</h3>
+            <ul id="validationErrors" class="errors"></ul>
+          </div>
+          <div class="panel-actions">
+            <button id="saveButton" type="button">Сохранить</button>
+            <button id="validateButton" class="secondary" type="button">Проверить поля</button>
+            <button id="createMsButton" class="danger" type="button">Завести в МС</button>
+          </div>
+        </article>
+      </section>
     </main>
+
     <script>
       const tg = window.Telegram?.WebApp;
       tg?.ready();
       tg?.expand();
 
-      const statusEl = document.getElementById("status");
-      const listEl = document.getElementById("list");
-      const refreshButton = document.getElementById("refresh");
+      const state = {
+        events: [],
+        selectedEvent: null,
+        product: null,
+      };
+
+      const appBase = window.location.pathname.replace(/\/miniapp\/?$/, "");
+      const route = (path) => `${appBase}${path}`;
+      const authHeaders = () => (tg?.initData ? { "X-Telegram-Init-Data": tg.initData } : {});
+      const byId = (id) => document.getElementById(id);
+      const fields = [
+        "supplier",
+        "raw_name",
+        "article",
+        "supplier_code",
+        "unit",
+        "units_per_package",
+        "retail_price",
+        "main_image",
+        "group_ms",
+        "width_mm",
+        "height_mm",
+        "thickness_mm",
+        "color",
+        "surface",
+        "texture",
+        "site_manufacturer",
+        "site_collection",
+        "raw_description",
+      ];
+
+      async function api(path, options = {}) {
+        const response = await fetch(route(path), {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders(),
+            ...(options.headers || {}),
+          },
+        });
+        const text = await response.text();
+        const data = text ? JSON.parse(text) : null;
+        if (!response.ok) {
+          const detail = typeof data?.detail === "string" ? data.detail : JSON.stringify(data?.detail);
+          throw new Error(detail || `HTTP ${response.status}`);
+        }
+        return data;
+      }
 
       async function loadQueue() {
-        statusEl.textContent = "Загрузка...";
-        listEl.replaceChildren();
-        const response = await fetch("/miniapp/api/intake/events", {
-          headers: tg?.initData ? { "X-Telegram-Init-Data": tg.initData } : {},
-        });
-        if (!response.ok) {
-          statusEl.textContent = "Нет доступа или backend не готов";
-          return;
-        }
-        const events = await response.json();
-        statusEl.textContent = events.length ? `В очереди: ${events.length}` : "Очередь пустая";
-        for (const event of events) {
-          const item = document.createElement("article");
-          item.className = "event";
-          item.innerHTML = `
-            <div class="event-top">
-              <span class="kind">${event.item.kind}</span>
-              <span class="source">${event.source}</span>
+        setQueueStatus("Загрузка...");
+        state.events = await api("/miniapp/api/intake/events");
+        byId("count").textContent = String(state.events.length);
+        renderQueue();
+        setQueueStatus(state.events.length ? "Готово" : "Очередь пустая");
+      }
+
+      function renderQueue() {
+        const list = byId("queueList");
+        list.replaceChildren();
+        for (const event of state.events) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = `event-button ${state.selectedEvent?.id === event.id ? "active" : ""}`;
+          button.innerHTML = `
+            <div class="event-kind">
+              <span>${labelKind(event.item.kind)}</span>
+              <span>${event.status}</span>
             </div>
-            <pre>${escapeHtml(JSON.stringify(event.item.payload, null, 2))}</pre>
+            <div class="event-preview">${escapeHtml(previewEvent(event))}</div>
           `;
-          listEl.append(item);
+          button.addEventListener("click", () => selectEvent(event));
+          list.append(button);
         }
       }
 
+      function selectEvent(event) {
+        state.selectedEvent = event;
+        state.product = null;
+        renderQueue();
+        byId("emptyState").hidden = true;
+        byId("productPanel").hidden = true;
+        byId("eventPanel").hidden = false;
+        byId("eventTitle").textContent = labelKind(event.item.kind);
+        byId("eventMeta").textContent = event.source;
+        byId("rawPayload").textContent = JSON.stringify(event.item.payload, null, 2);
+      }
+
+      async function createDraft() {
+        if (!state.selectedEvent) return;
+        const supplier = byId("draftSupplier").value.trim() || "Не указан";
+        const data = await api(`/miniapp/api/intake/events/${state.selectedEvent.id}/draft`, {
+          method: "POST",
+          body: JSON.stringify({ supplier }),
+        });
+        state.product = data.product;
+        byId("eventPanel").hidden = true;
+        renderProduct();
+        await loadQueue();
+      }
+
+      async function saveDraft() {
+        if (!state.product) return;
+        state.product = await api(`/miniapp/api/products/${state.product.id}/draft`, {
+          method: "PUT",
+          body: JSON.stringify(formPayload()),
+        });
+        renderProduct("Сохранено", "ok");
+      }
+
+      async function validateProduct() {
+        if (!state.product) return;
+        await saveDraft();
+        state.product = await api(`/miniapp/api/products/${state.product.id}/validate`, {
+          method: "POST",
+          body: "{}",
+        });
+        renderProduct(
+          state.product.validation?.passed ? "Поля прошли проверку" : "Нужно поправить поля",
+          state.product.validation?.passed ? "ok" : "warn",
+        );
+      }
+
+      async function createInMs() {
+        if (!state.product) return;
+        await validateProduct();
+        try {
+          const data = await api(`/miniapp/api/products/${state.product.id}/create-ms`, {
+            method: "POST",
+            body: JSON.stringify({ confirm_ms_only: true }),
+          });
+          state.product = data.product;
+          renderProduct("Создано в МС", "ok");
+        } catch (error) {
+          renderProduct(error.message, "error");
+        }
+      }
+
+      function renderProduct(message, tone = "") {
+        byId("emptyState").hidden = true;
+        byId("eventPanel").hidden = true;
+        byId("productPanel").hidden = false;
+        byId("productTitle").textContent = state.product.generated_name || "Карточка товара";
+        byId("productStatus").textContent = message || state.product.status;
+        byId("productStatus").className = `status ${tone}`;
+        byId("publicationMode").value = state.product.publication_mode || "ms_only";
+        for (const field of fields) {
+          byId(field).value = valueForField(state.product, field);
+        }
+        renderErrors(state.product.validation?.errors || state.product.validation_errors || []);
+      }
+
+      function formPayload() {
+        const payload = {};
+        for (const field of fields) {
+          const value = byId(field).value.trim();
+          if (value) payload[field] = value;
+        }
+        payload.publication_mode = byId("publicationMode").value;
+        return payload;
+      }
+
+      function valueForField(product, field) {
+        const confidenceFields = new Set([
+          "article",
+          "supplier_code",
+          "unit",
+          "units_per_package",
+          "width_mm",
+          "height_mm",
+          "thickness_mm",
+          "color",
+          "surface",
+          "texture",
+          "site_manufacturer",
+          "site_collection",
+        ]);
+        if (confidenceFields.has(field)) return product[field]?.value ?? "";
+        return product[field] ?? "";
+      }
+
+      function renderErrors(errors) {
+        const list = byId("validationErrors");
+        list.replaceChildren();
+        for (const error of errors) {
+          const item = document.createElement("li");
+          item.textContent = `${error.field}: ${error.message}`;
+          list.append(item);
+        }
+      }
+
+      function setQueueStatus(value) {
+        byId("queueStatus").textContent = value;
+      }
+
+      function labelKind(kind) {
+        return {
+          text: "Текст",
+          supplier_url: "Ссылка",
+          table: "Таблица",
+          image_invoice: "Фото",
+          unknown_file: "Файл",
+        }[kind] || kind;
+      }
+
+      function previewEvent(event) {
+        const payload = event.item.payload || {};
+        return payload.text || payload.caption || payload.url || payload.file_name || event.id;
+      }
+
       function escapeHtml(value) {
-        return value.replace(/[&<>"']/g, (char) => ({
+        return String(value).replace(/[&<>"']/g, (char) => ({
           "&": "&amp;",
           "<": "&lt;",
           ">": "&gt;",
@@ -158,10 +659,21 @@
         })[char]);
       }
 
-      refreshButton.addEventListener("click", loadQueue);
-      loadQueue().catch(() => {
-        statusEl.textContent = "Ошибка загрузки";
+      byId("refresh").addEventListener("click", loadQueue);
+      byId("draftButton").addEventListener("click", () => {
+        createDraft().catch((error) => setQueueStatus(error.message));
       });
+      byId("saveButton").addEventListener("click", () => {
+        saveDraft().catch((error) => renderProduct(error.message, "error"));
+      });
+      byId("validateButton").addEventListener("click", () => {
+        validateProduct().catch((error) => renderProduct(error.message, "error"));
+      });
+      byId("createMsButton").addEventListener("click", () => {
+        createInMs().catch((error) => renderProduct(error.message, "error"));
+      });
+
+      loadQueue().catch((error) => setQueueStatus(error.message));
     </script>
   </body>
 </html>

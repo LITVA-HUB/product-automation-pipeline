@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from uuid import UUID
+
 from sqlalchemy.orm import Session
 
 from app.adapters.repositories.models import IntakeEventRow
@@ -23,6 +25,21 @@ class IntakeRepository:
             status=event.status,
         )
         self.session.add(row)
+        self.session.flush()
+        return row
+
+    def get(self, event_id: UUID) -> IntakeEventRow | None:
+        return self.session.get(IntakeEventRow, str(event_id))
+
+    def set_status(
+        self, event_id: UUID, status: str, payload_updates: dict | None = None
+    ) -> IntakeEventRow | None:
+        row = self.get(event_id)
+        if row is None:
+            return None
+        row.status = status
+        if payload_updates:
+            row.payload = {**row.payload, **payload_updates}
         self.session.flush()
         return row
 

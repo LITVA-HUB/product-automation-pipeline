@@ -3,13 +3,15 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.adapters.repositories.product_repository import ProductRepository
 from app.adapters.repositories.review_repository import HumanReviewRepository
-from app.api.dependencies import get_db_session
+from app.api.auth import require_telegram_operator
+from app.api.dependencies import get_db_session, get_settings
+from app.config import Settings
 from app.workflow.states import WorkflowStatus
 
 router = APIRouter(prefix="/review", tags=["review"])
@@ -28,7 +30,10 @@ async def apply_review_decision(
     product_id: UUID,
     request: ReviewDecisionRequest,
     session: Annotated[Session, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    x_telegram_init_data: str | None = Header(default=None),
 ) -> dict:
+    require_telegram_operator(settings, x_telegram_init_data)
     product_repository = ProductRepository(session)
     product = product_repository.get(product_id)
     if product is None:

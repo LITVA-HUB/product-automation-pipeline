@@ -3,12 +3,14 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from app.adapters.repositories.product_repository import ProductRepository
-from app.api.dependencies import get_db_session
+from app.api.auth import require_telegram_operator
+from app.api.dependencies import get_db_session, get_settings
+from app.config import Settings
 from app.domain.product_candidate import ProductCandidate
 
 router = APIRouter(prefix="/products", tags=["products"])
@@ -27,7 +29,10 @@ class ManualProductRequest(BaseModel):
 async def create_manual_product(
     request: ManualProductRequest,
     session: Annotated[Session, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    x_telegram_init_data: str | None = Header(default=None),
 ) -> ProductCandidate:
+    require_telegram_operator(settings, x_telegram_init_data)
     candidate = ProductCandidate(
         supplier=request.supplier,
         source_type="manual",
@@ -45,7 +50,10 @@ async def create_manual_product(
 async def get_product(
     product_id: UUID,
     session: Annotated[Session, Depends(get_db_session)],
+    settings: Annotated[Settings, Depends(get_settings)],
+    x_telegram_init_data: str | None = Header(default=None),
 ) -> ProductCandidate:
+    require_telegram_operator(settings, x_telegram_init_data)
     product = ProductRepository(session).get(product_id)
     if product is None:
         raise HTTPException(status_code=404, detail="Product not found")

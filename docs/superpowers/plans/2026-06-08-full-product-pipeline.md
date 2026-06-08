@@ -258,3 +258,26 @@
 - [x] Serve a Telegram Mini App inbox and validate Mini App `initData` in production.
 - [x] Run Alembic migrations automatically before API/worker startup in Docker Compose.
 - [x] Make `ruff check`, `pytest`, and `compileall` pass on the repository.
+
+## Task 18: Manager Mini App Workflow and Live Staging Deploy
+
+**Files:**
+- Create: `app/api/auth.py`
+- Create: `app/services/miniapp/workflow.py`
+- Modify: `app/api/routes_miniapp.py`
+- Modify: `app/api/routes_intake.py`
+- Modify: `app/api/routes_products.py`
+- Modify: `app/api/routes_review.py`
+- Modify: `app/api/miniapp.html`
+- Create: `tests/unit/test_miniapp_workflow_api.py`
+- Create: `tests/unit/test_production_auth.py`
+- Modify: `docs/telegram.md`
+- Modify: `docs/runbooks/staging.md`
+
+- [x] Let operators convert pending Telegram intake into editable product drafts.
+- [x] Add Mini App endpoints for saving draft fields, validating candidates, and requesting МойСклад creation.
+- [x] Keep МойСклад creation locked unless `MOYSKLAD_WRITES_ENABLED=true`.
+- [x] Protect raw operator APIs in production with Telegram Mini App `initData`.
+- [x] Replace the JSON-only Mini App with a full queue, form, validation, and create-in-МС workflow.
+- [x] Deploy the API to `luma-vps` behind nginx at `/product-automation/`.
+- [x] Configure Telegram webhook and menu button for the live staging URL.

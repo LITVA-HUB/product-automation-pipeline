@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     openrouter_app_title: str = "Product Automation Pipeline"
 
     moysklad_token: str = ""
+    moysklad_writes_enabled: bool = False
+    moysklad_maps_path: str = "local_storage/staging/ms_maps.json"
     telegram_bot_token: str = ""
     telegram_webhook_secret: str = ""
     telegram_webapp_max_age_seconds: int = 24 * 60 * 60

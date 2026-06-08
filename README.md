@@ -12,13 +12,14 @@ The repository contains a tested application pipeline:
 - domain model for product candidates;
 - deterministic workflow state machine and audit-ready repositories;
 - arbitrary intake classification for text, supplier URLs, tables, and invoice images;
-- Telegram webhook intake, Telegram file download, and Mini App operator inbox;
+- Telegram webhook intake, Telegram file download, and full Mini App operator workflow;
 - CSV/manual ingestion;
 - LLM extraction contracts and OpenRouter adapter locked to `google/gemini-3.1-flash-lite`;
 - deterministic naming, pricing, duplicate detection, image grouping, validation, and publication services;
 - МойСклад REST adapter methods behind ports;
 - FastAPI routes for products and human review decisions;
 - database-backed product, review, and intake APIs;
+- production auth guard for operator APIs through Telegram Mini App `initData`;
 - Celery task wrappers for workflow progression;
 - Docker Compose, Alembic migrations, and GitHub Actions test workflow;
 - reproducible dry-run CLI with a sample supplier export.
@@ -58,11 +59,19 @@ docker compose up --build
 ```
 
 The compose stack waits for Postgres and Redis, runs `alembic upgrade head`, and
-then starts the API and worker. The operator Mini App is served at
-`/miniapp`; Telegram webhooks must point to `/telegram/webhook`.
+then starts the API and worker. The operator Mini App is served at `/miniapp`;
+Telegram webhooks must point to `/telegram/webhook`.
 
 If your Docker installation uses the legacy `docker-compose` command, run
 `docker-compose -p product_pipeline up --build` so the project name is ASCII.
+
+## Live Staging
+
+- Mini App: `https://api-staging.lumatestdomen.online/product-automation/miniapp`
+- Webhook: `https://api-staging.lumatestdomen.online/product-automation/telegram/webhook`
+- Service: `product-automation-api.service` on `luma-vps`
+- Public path: nginx proxies `/product-automation/` to `127.0.0.1:8020`
+- Real МойСклад writes are disabled with `MOYSKLAD_WRITES_ENABLED=false`.
 
 ## Dry Run
 
@@ -109,7 +118,7 @@ tests/
 pytest -q
 ```
 
-Current baseline: `69 passed`.
+Current baseline: `75 passed`.
 
 ## Staging Gate
 

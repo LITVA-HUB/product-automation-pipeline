@@ -29,11 +29,19 @@ Telegram update
   -> IntakeItem(kind, payload)
   -> intake_events(status=pending)
   -> GET /miniapp/api/intake/events for Mini App queue
+  -> operator creates draft
+  -> operator edits and validates fields
+  -> operator explicitly presses "Завести в МС"
 ```
 
 The operator UI is served at `/miniapp`. In `APP_ENV=prod`, Mini App API calls
 must include `X-Telegram-Init-Data` from `window.Telegram.WebApp.initData`; the
 backend verifies the Telegram HMAC before returning queue data.
+
+Live staging is served under a path prefix:
+
+- Mini App: `https://api-staging.lumatestdomen.online/product-automation/miniapp`
+- Webhook: `https://api-staging.lumatestdomen.online/product-automation/telegram/webhook`
 
 ## Safety Rules
 
@@ -46,6 +54,9 @@ backend verifies the Telegram HMAC before returning queue data.
   `initDataUnsafe` directly.
 - The Mini App must require an explicit operator action before creating a product.
 - Product creation defaults to `publication_mode=ms_only`.
+- Real МойСклад writes are additionally gated by `MOYSKLAD_WRITES_ENABLED=true`.
+  The live staging server keeps this flag `false` until МойСклад maps and test
+  creation are explicitly verified.
 
 ## Local Smoke Test
 
@@ -59,6 +70,17 @@ curl http://localhost:8000/miniapp/api/intake/events
 ```
 
 Expected: one pending intake event with `kind=text`.
+
+## Mini App Operator Flow
+
+1. Select an incoming item from the queue.
+2. Create a draft and set supplier.
+3. Fill or correct required fields.
+4. Click `Проверить поля`.
+5. Click `Завести в МС` only after validation passes.
+
+When writes are disabled, the final button returns `MoySklad writes are disabled`
+and performs no external API call.
 
 ## Production Webhook Setup
 
