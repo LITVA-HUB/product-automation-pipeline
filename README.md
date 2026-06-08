@@ -7,14 +7,18 @@ validates every critical field, and publishes only after approval.
 
 ## Current Status
 
-This repository starts with the core foundation:
+The repository contains a tested application pipeline:
 
 - domain model for product candidates;
-- deterministic workflow state machine;
-- business rules for prices, packaging, coefficients, and site card type;
-- OpenRouter LLM adapter locked to `google/gemini-3.1-flash-lite`;
-- interface ports for МойСклад and Bitrix integrations;
-- unit tests for the highest-risk business rules.
+- deterministic workflow state machine and audit-ready repositories;
+- CSV/manual ingestion;
+- LLM extraction contracts and OpenRouter adapter locked to `google/gemini-3.1-flash-lite`;
+- deterministic naming, pricing, duplicate detection, image grouping, validation, and publication services;
+- МойСклад and Bitrix REST adapter methods behind ports;
+- FastAPI routes for products and human review decisions;
+- Celery task wrappers for workflow progression;
+- Docker Compose, Alembic migrations, and GitHub Actions test workflow;
+- reproducible dry-run CLI with a sample supplier export.
 
 ## Non-Negotiable Rules
 
@@ -41,6 +45,19 @@ pytest -q
 Copy `.env.example` to `.env` and fill real secrets only in local or deployment
 environments. Never commit tokens.
 
+## Dry Run
+
+Run the pipeline locally without OpenRouter, МойСклад, or Bitrix writes:
+
+```bash
+python scripts/dry_run_pipeline.py \
+  --input examples/sample_supplier_products.csv \
+  --output local_storage/dry_run/result.json
+```
+
+Expected result: one product reaches `validated_before_ms`; prices, coefficient,
+name, image grouping, and validation are computed by deterministic services.
+
 ## Project Layout
 
 ```text
@@ -63,6 +80,8 @@ tests/
 - [Architecture](docs/architecture.md)
 - [OpenRouter Provider](docs/openrouter.md)
 - [MoySklad and Bitrix Integration Notes](docs/integrations.md)
+- [Staging Runbook](docs/runbooks/staging.md)
+- [Implementation Plan](docs/superpowers/plans/2026-06-08-full-product-pipeline.md)
 
 ## Validation
 
@@ -70,4 +89,15 @@ tests/
 pytest -q
 ```
 
-Current baseline: `8 passed`.
+Current baseline: `47 passed`.
+
+## Staging Gate
+
+Real МойСклад/Bitrix discovery requires staging credentials:
+
+- `MOYSKLAD_TOKEN`
+- `BITRIX_WEBHOOK_URL`
+- staging product `iblock-id`
+
+Generated metadata maps must be written under `local_storage/`, which is ignored
+by git.

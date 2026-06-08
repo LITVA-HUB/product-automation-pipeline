@@ -177,3 +177,16 @@
 - [x] Stop possible duplicates before any external writes.
 - [x] Create in МойСклад, upload the main image, configure Bitrix, and verify site fields through port clients.
 - [x] Fill concrete REST adapter methods behind the existing МойСклад and Bitrix ports.
+
+## Task 13: Reproducible Dry Run
+
+**Files:**
+- Create: `examples/sample_supplier_products.csv`
+- Create: `scripts/dry_run_pipeline.py`
+- Create: `tests/unit/test_dry_run_cli.py`
+- Modify: `README.md`
+
+- [x] Add a sample supplier CSV export.
+- [x] Add a dry-run CLI that exercises the local pipeline without external writes.
+- [x] Emit JSON evidence with status, prices, name, and image grouping.
+- [x] Document the command in README.
