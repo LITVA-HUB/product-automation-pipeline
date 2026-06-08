@@ -219,3 +219,20 @@
 - [x] Set МойСклад `Выгружено на сайте=false` by default in product payloads.
 - [x] Allow site activation only as an explicit publication action.
 - [x] Add typed intake classification for text, supplier URLs, tables, and invoice images.
+
+## Task 16: Telegram Intake Backend
+
+**Files:**
+- Create: `app/services/telegram/intake.py`
+- Create: `app/adapters/repositories/intake_repository.py`
+- Create: `app/api/routes_telegram.py`
+- Create: `app/api/routes_intake.py`
+- Create: `migrations/versions/20260608_0003_intake_events.py`
+- Create: `tests/unit/test_telegram_intake.py`
+- Create: `tests/unit/test_intake_api.py`
+- Create: `docs/telegram.md`
+
+- [x] Convert Telegram text, URL, document, and photo updates into typed intake events.
+- [x] Persist intake events with status `pending`.
+- [x] Expose `/telegram/webhook` and `/intake/events` for bot/Mini App integration.
+- [x] Keep webhook handling side-effect-safe: no МойСклад writes and no publication.

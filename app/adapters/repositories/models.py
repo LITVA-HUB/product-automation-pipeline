@@ -98,3 +98,17 @@ class WorkflowJobRow(Base):
     duration_ms: Mapped[int | None] = mapped_column(nullable=True)
     error: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class IntakeEventRow(Base):
+    __tablename__ = "intake_events"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    source: Mapped[str] = mapped_column(String(64), index=True)
+    operator_id: Mapped[str | None] = mapped_column(String(255), nullable=True, index=True)
+    chat_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    kind: Mapped[str] = mapped_column(String(64), index=True)
+    payload: Mapped[dict] = mapped_column(JSON, default=dict)
+    raw_update: Mapped[dict] = mapped_column(JSON, default=dict)
+    status: Mapped[str] = mapped_column(String(64), default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

@@ -12,6 +12,7 @@ The repository contains a tested application pipeline:
 - domain model for product candidates;
 - deterministic workflow state machine and audit-ready repositories;
 - arbitrary intake classification for text, supplier URLs, tables, and invoice images;
+- Telegram webhook intake and Mini App inbox API;
 - CSV/manual ingestion;
 - LLM extraction contracts and OpenRouter adapter locked to `google/gemini-3.1-flash-lite`;
 - deterministic naming, pricing, duplicate detection, image grouping, validation, and publication services;
@@ -84,6 +85,7 @@ tests/
 - [OpenRouter Provider](docs/openrouter.md)
 - [MoySklad Integration Notes](docs/integrations.md)
 - [Staging Runbook](docs/runbooks/staging.md)
+- [Telegram Intake](docs/telegram.md)
 - [Implementation Plan](docs/superpowers/plans/2026-06-08-full-product-pipeline.md)
 
 ## Validation
@@ -92,7 +94,7 @@ tests/
 pytest -q
 ```
 
-Current baseline: `57 passed`.
+Current baseline: `63 passed`.
 
 ## Staging Gate
 
