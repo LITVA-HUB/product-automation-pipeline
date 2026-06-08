@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import json
 from typing import Any
+
+from pydantic import ValidationError
+
+from app.domain.extraction import ExtractionResult
 
 OPENROUTER_GEMINI_FLASH_LITE_MODEL = "google/gemini-3.1-flash-lite"
 OPENROUTER_CHAT_COMPLETIONS_URL = "https://openrouter.ai/api/v1/chat/completions"
@@ -50,3 +55,13 @@ class OpenRouterLLMProvider:
                 {"role": "user", "content": user_content},
             ],
         }
+
+    def parse_extraction_content(self, content: str) -> ExtractionResult:
+        try:
+            payload = json.loads(content)
+        except json.JSONDecodeError as exc:
+            raise ValueError("OpenRouter response content must be valid JSON") from exc
+        try:
+            return ExtractionResult.model_validate(payload)
+        except ValidationError as exc:
+            raise ValueError("OpenRouter response JSON does not match ExtractionResult") from exc
